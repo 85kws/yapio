@@ -7,6 +7,19 @@
 
 ## 0. GÜNCEL DURUM (en son — buradan oku)
 
+### En son tur — G1–G6 (commit 350782d, TestFlight build 8)
+- **Giriş:** isim + **şifre**. ScrollView + autofocus yok → terms onay kutusu erişilebilir, klavye kapanabilir.
+- **Süper admin:** isim `orion` / şifre `1234` (rezerve; yanlış şifre = 401). is_admin + is_super verir. Eski "admin" backdoor kaldırıldı.
+  Süper admin: `app/admin/sellers.js` (başvuru onay/red) + `app/admin/businesses.js` (işletme askıya al/aktifleştir) + kullanıcı ban.
+- **seller-apply:** işletme türü soruları (tür/çalışan/fiziksel mekan/sunulan hizmet) + **zorunlu "online ürün satışı yapamam" onayı** (Apple kuralı bilgi kutusu).
+- **Profil:** ödeme rehberi **sadece onaylı satıcıda**; "Destek & Geri Bildirim" → `mailto:o.y.baser@gmail.com`.
+- **Run TAM EKRAN:** üstteki X/geri/başlık bar'ı kaldırıldı (gerçek app hissi). App ana sayfasında küçük yüzen ↓ (çıkış), modül içinde küçük yüzen ‹ (ana sayfaya). Çıkış ayrıca iOS kenar-swipe.
+- **Özelleştirme:** app adı düzenlenebilir + logo yükleme (`/businesses/:id/logo`); logo her yerde ikon olur (`AppIcon logo` prop).
+- **Özel app'ler (FormLab tarzı erişim):** `businesses.access_mode` public/private + `join_code`; `business_members` (pending/active/blocked). Private app açılınca **katılım kapısı**: kod gir→aktif, veya istek gönder→pending; satıcı `app/members/[id].js`'te onaylar/çıkarır. Sahip/personel her zaman erişir.
+- Backend yeni kolon/tablo: app_users.is_super/banned, businesses.access_mode/join_code, business_members tablosu (prod'da OWNER→yapp yapıldı).
+
+### Önceki: 16 modül (aşağıda detay)
+
 **16 modülün TAMAMI aktif** (artık "yapım aşamasında" yok). Commit zinciri:
 `da7d645`(CP1) → `f2aadd9`(CP2) → `c8ed8ba`(CP3) → `c77dd7d`(CP4) → `ebcf86a`(CP5) →
 `40d446c`(Batch A/booking backbone) → `8e17237`(B) → `fc71fc6`(C) → `ccf3f81`(D).
