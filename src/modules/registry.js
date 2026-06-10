@@ -10,6 +10,14 @@ import CampaignsCustomer from './customer/Campaigns';
 import CampaignsManage from './manage/Campaigns';
 import LoyaltyCustomer from './customer/Loyalty';
 import LoyaltyManage from './manage/Loyalty';
+import RecordsCustomer from './customer/Records';
+import RecordsManage from './manage/Records';
+import PlansCustomer from './customer/Plans';
+import PlansManage from './manage/Plans';
+import TrackerCustomer from './customer/Tracker';
+import TrackerManage from './manage/Tracker';
+import SubscriptionsCustomer from './customer/Subscriptions';
+import SubscriptionsManage from './manage/Subscriptions';
 
 export const CUSTOMER = {
   booking: BookingCustomer,
@@ -17,6 +25,10 @@ export const CUSTOMER = {
   ordering: OrderingCustomer,
   campaigns: CampaignsCustomer,
   loyalty: LoyaltyCustomer,
+  records: RecordsCustomer,
+  plans: PlansCustomer,
+  tracker: TrackerCustomer,
+  subscriptions: SubscriptionsCustomer,
 };
 
 export const MANAGE = {
@@ -25,6 +37,10 @@ export const MANAGE = {
   ordering: OrderingManage,
   campaigns: CampaignsManage,
   loyalty: LoyaltyManage,
+  records: RecordsManage,
+  plans: PlansManage,
+  tracker: TrackerManage,
+  subscriptions: SubscriptionsManage,
 };
 
 export const hasCustomer = (m) => !!CUSTOMER[m];
