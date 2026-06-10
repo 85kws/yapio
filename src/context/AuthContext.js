@@ -24,8 +24,8 @@ export function AuthProvider({ children }) {
     (async () => { await refresh(); setLoading(false); })();
   }, [refresh]);
 
-  const loginDev = async (name) => {
-    const { token, user: u } = await authDev(name);
+  const loginDev = async (name, password) => {
+    const { token, user: u } = await authDev(name, password);
     await setToken(token);
     setUser(u);
   };

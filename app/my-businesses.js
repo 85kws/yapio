@@ -54,7 +54,7 @@ export default function MyBusinesses() {
           const theme = item.theme_json?.color || COLORS.primary;
           return (
             <TouchableOpacity style={s.card} onPress={() => router.push(`/business/${item.id}`)} activeOpacity={0.8}>
-              <AppIcon sectorKey={item.sector_key} color={theme} size={54} />
+              <AppIcon sectorKey={item.sector_key} color={theme} size={54} logo={item.logo_url} />
               <View style={{ flex: 1 }}>
                 <Text style={s.name}>{item.name}</Text>
                 <View style={s.statusRow}>

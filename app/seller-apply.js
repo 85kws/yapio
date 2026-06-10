@@ -12,16 +12,19 @@ export default function SellerApply() {
   const router = useRouter();
   const { setUser } = useAuth();
   const [type, setType] = useState('individual');
-  const [f, setF] = useState({ legal_name: '', company_title: '', national_id: '', tax_no: '', tax_office: '', address: '', city: '', phone: '', email: '', website: '' });
+  const [f, setF] = useState({ legal_name: '', company_title: '', national_id: '', tax_no: '', tax_office: '', address: '', city: '', phone: '', email: '', website: '', business_type: '', employee_count: '', offerings: '' });
+  const [hasLocation, setHasLocation] = useState('yes');
   const [agree, setAgree] = useState(false);
+  const [ackSales, setAckSales] = useState(false);
   const [busy, setBusy] = useState(false);
   const set = (k) => (v) => setF((s) => ({ ...s, [k]: v }));
 
   const submit = async () => {
     if (!agree) return Alert.alert('Onay gerekli', 'Satıcı sözleşmesini onaylamalısın.');
+    if (!ackSales) return Alert.alert('Onay gerekli', 'Online ürün satışı yapılamayacağını onaylamalısın.');
     setBusy(true);
     try {
-      const user = await sellerApply({ account_type: type, ...f, agreement: true });
+      const user = await sellerApply({ account_type: type, ...f, has_location: hasLocation, agreement: true, no_online_sales_ack: true });
       setUser(user);
       Alert.alert('Başvuru alındı', 'Başvurun incelemeye gönderildi. Onaylanınca işletme app\'i kurabilirsin.', [
         { text: 'Tamam', onPress: () => router.back() },
@@ -68,6 +71,30 @@ export default function SellerApply() {
         <Field label="E-posta" value={f.email} onChange={set('email')} placeholder="ornek@eposta.com" keyboardType="email-address" />
         <Field label="Web / Instagram" value={f.website} onChange={set('website')} placeholder="@kullanici veya https://" />
 
+        <Text style={s.heading}>İşletmen hakkında</Text>
+        <Field label="Ne tür bir işletme? *" value={f.business_type} onChange={set('business_type')} placeholder="Örn: Erkek kuaförü, restoran, diyetisyen" />
+        <Field label="Çalışan sayısı" value={f.employee_count} onChange={set('employee_count')} placeholder="Örn: 3" keyboardType="number-pad" />
+        <Text style={s.label}>Fiziksel mekanın var mı?</Text>
+        <View style={s.segment}>
+          {[['yes', 'Evet'], ['no', 'Hayır']].map(([v, l]) => (
+            <TouchableOpacity key={v} style={[s.segItem, hasLocation === v && s.segActive]} onPress={() => setHasLocation(v)}>
+              <Text style={[s.segText, hasLocation === v && s.segTextActive]}>{l}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <Field label="Hangi hizmetleri sunuyorsun?" value={f.offerings} onChange={set('offerings')} placeholder="Kısaca yaz" />
+
+        <View style={s.warnBox}>
+          <Ionicons name="information-circle" size={22} color="#B7791F" />
+          <Text style={s.warnText}>
+            yapp'te yalnızca <Text style={{ fontWeight: '800' }}>fiziksel hizmet</Text> sunabilirsin (randevu, üyelik, seans, masa siparişi). Uygulama içinde <Text style={{ fontWeight: '800' }}>dijital/online ürün satışı yapılamaz</Text> (Apple kuralı). Ödemeler kendi iyzico/Stripe hesabına geçer.
+          </Text>
+        </View>
+        <TouchableOpacity style={s.agreeRow} onPress={() => setAckSales((v) => !v)} activeOpacity={0.7}>
+          <View style={[s.checkbox, ackSales && s.checkboxOn]}>{ackSales ? <Ionicons name="checkmark" size={15} color="#fff" /> : null}</View>
+          <Text style={s.agreeText}>Online/dijital ürün satışı yapamayacağımı anladım ve kabul ediyorum.</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity style={s.agreeRow} onPress={() => setAgree((v) => !v)} activeOpacity={0.7}>
           <View style={[s.checkbox, agree && s.checkboxOn]}>{agree ? <Ionicons name="checkmark" size={15} color="#fff" /> : null}</View>
           <Text style={s.agreeText}>
@@ -75,7 +102,7 @@ export default function SellerApply() {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[s.submitBtn, !agree && { opacity: 0.4 }]} onPress={submit} disabled={busy}>
+        <TouchableOpacity style={[s.submitBtn, (!agree || !ackSales) && { opacity: 0.4 }]} onPress={submit} disabled={busy}>
           {busy ? <ActivityIndicator color="#fff" /> : <Text style={s.submitText}>Başvuruyu Gönder</Text>}
         </TouchableOpacity>
         <Text style={s.note}>Başvurun manuel incelenir. Onaylanınca işletme app'i kurabilirsin.</Text>
@@ -105,6 +132,9 @@ const s = StyleSheet.create({
   segActive: { backgroundColor: '#fff' },
   segText: { fontWeight: '700', color: COLORS.muted },
   segTextActive: { color: COLORS.primary },
+  heading: { fontSize: 18, fontWeight: '800', color: COLORS.text, marginTop: 8, marginBottom: 12 },
+  warnBox: { flexDirection: 'row', gap: 12, backgroundColor: '#FFF7E6', borderRadius: 14, padding: 16, marginTop: 8, marginBottom: 6 },
+  warnText: { flex: 1, fontSize: 13, color: COLORS.text, lineHeight: 20 },
   agreeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 6, marginBottom: 18 },
   checkbox: { width: 24, height: 24, borderRadius: 7, borderWidth: 2, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
   checkboxOn: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },

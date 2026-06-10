@@ -61,7 +61,7 @@ export default function StorePage() {
       <ScrollView contentContainerStyle={{ paddingBottom: 110 }}>
         {/* Üst kimlik */}
         <View style={s.hero}>
-          <AppIcon sectorKey={biz.sector_key} color={theme} size={88} radius={20} />
+          <AppIcon sectorKey={biz.sector_key} color={theme} size={88} radius={20} logo={biz.logo_url} />
           <View style={{ flex: 1 }}>
             <Text style={s.name}>{biz.name}</Text>
             <Text style={s.sector}>{biz.sector_name || 'İşletme'}</Text>

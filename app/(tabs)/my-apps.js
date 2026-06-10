@@ -32,7 +32,7 @@ export default function MyApps() {
           const theme = item.theme_json?.color || COLORS.primary;
           return (
             <TouchableOpacity style={s.appItem} onPress={() => router.push(`/run/${item.share_slug}`)} activeOpacity={0.8}>
-              <AppIcon sectorKey={item.sector_key} color={theme} size={64} radius={16} />
+              <AppIcon sectorKey={item.sector_key} color={theme} size={64} radius={16} logo={item.logo_url} />
               <Text style={s.name} numberOfLines={1}>{item.name}</Text>
             </TouchableOpacity>
           );

@@ -28,7 +28,7 @@ api.interceptors.request.use(async (config) => {
 });
 
 // ---- Auth ----
-export const authDev = (name) => api.post('/auth/dev', { name }).then((r) => r.data);
+export const authDev = (name, password) => api.post('/auth/dev', { name, password }).then((r) => r.data);
 export const authApple = (identityToken, name) => api.post('/auth/apple', { identityToken, name }).then((r) => r.data);
 export const authGoogle = (idToken) => api.post('/auth/google', { idToken }).then((r) => r.data);
 export const getMe = () => api.get('/auth/me').then((r) => r.data.user);
@@ -54,6 +54,21 @@ export const sellerStatus = () => api.get('/seller/status').then((r) => r.data.u
 export const adminPending = () => api.get('/seller/admin/pending').then((r) => r.data.applications);
 export const adminApprove = (id) => api.post(`/seller/admin/${id}/approve`).then((r) => r.data.user);
 export const adminReject = (id, reason) => api.post(`/seller/admin/${id}/reject`, { reason }).then((r) => r.data.user);
+export const adminBusinesses = () => api.get('/seller/admin/businesses').then((r) => r.data.businesses);
+export const adminBusinessAction = (id, action) => api.post(`/seller/admin/businesses/${id}/${action}`).then((r) => r.data.business);
+export const adminUserAction = (id, action) => api.post(`/seller/admin/users/${id}/${action}`).then((r) => r.data.user);
+
+// ---- Üyeler (private app) ----
+export const getMembers = (bid) => api.get(`/businesses/${bid}/members`).then((r) => r.data.members);
+export const joinBusiness = (bid, code) => api.post(`/businesses/${bid}/join`, { code }).then((r) => r.data.status);
+export const memberAction = (bid, userId, action) => api.post(`/businesses/${bid}/members/${userId}/${action}`).then((r) => r.data);
+export const uploadLogo = (bid, uri) => {
+  const name = uri.split('/').pop() || 'logo.jpg';
+  const ext = (name.split('.').pop() || 'jpg').toLowerCase();
+  const form = new FormData();
+  form.append('image', { uri, name, type: `image/${ext === 'jpg' ? 'jpeg' : ext}` });
+  return api.post(`/businesses/${bid}/logo`, form, { headers: { 'Content-Type': 'multipart/form-data' } }).then((r) => r.data.logo_url);
+};
 
 // ---- İşletme (dev) ----
 export const myBusinesses = () => api.get('/businesses/mine').then((r) => r.data.businesses);

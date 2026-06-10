@@ -1,9 +1,10 @@
 // Merkezi ikon haritası. Emoji yerine @expo/vector-icons (Ionicons).
 // Sektör/modül anahtarından modern 2D ikon adına eşler.
 import React from 'react';
-import { View } from 'react-native';
+import { View, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from './theme';
+import { mediaUrl } from './api/client';
 
 // Sektör anahtarı → Ionicons adı
 export const SECTOR_ICON = {
@@ -29,8 +30,11 @@ export function Icon({ name, size = 22, color = COLORS.text, style }) {
   return <Ionicons name={name} size={size} color={color} style={style} />;
 }
 
-// İşletme/uygulama ikonu: renkli yuvarlak kare + sektör ikonu
-export function AppIcon({ sectorKey, color = COLORS.primary, size = 54, radius = 14 }) {
+// İşletme/uygulama ikonu: logo varsa foto, yoksa renkli kare + sektör ikonu
+export function AppIcon({ sectorKey, color = COLORS.primary, size = 54, radius = 14, logo = null }) {
+  if (logo) {
+    return <Image source={{ uri: mediaUrl(logo) }} style={{ width: size, height: size, borderRadius: radius, backgroundColor: '#ECECF4' }} />;
+  }
   return (
     <View style={{ width: size, height: size, borderRadius: radius, backgroundColor: color, alignItems: 'center', justifyContent: 'center' }}>
       <Ionicons name={sectorIcon(sectorKey)} size={size * 0.5} color="#fff" />

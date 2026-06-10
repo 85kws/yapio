@@ -1,6 +1,6 @@
 // Profil: kullanıcı bilgisi + satıcı başvuru/durum + admin + rehber/sözleşme + çıkış.
 import React, { useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -58,20 +58,24 @@ export default function Profile() {
           </View>
         )}
         {status === 'approved' && (
-          <Card icon="briefcase" title="İşletmelerim" desc="App'lerini yönet, yeni işletme ekle." onPress={() => router.push('/my-businesses')} />
+          <>
+            <Card icon="briefcase" title="İşletmelerim" desc="App'lerini yönet, yeni işletme ekle." onPress={() => router.push('/my-businesses')} />
+            <Card icon="card-outline" title="Ödeme Bağlama Rehberi" desc="iyzico/Stripe nasıl bağlanır." onPress={() => router.push('/payment-guide')} />
+          </>
         )}
 
         {/* Admin */}
         {user?.is_admin && (
           <>
-            <Text style={s.sectionLabel}>Yönetim</Text>
+            <Text style={s.sectionLabel}>Yönetim {user?.is_super ? '(Süper Admin)' : ''}</Text>
             <Card icon="shield-checkmark-outline" title="Satıcı Başvuruları" desc="Bekleyen başvuruları onayla/reddet." onPress={() => router.push('/admin/sellers')} />
+            {user?.is_super && <Card icon="business-outline" title="Tüm İşletmeler" desc="Askıya al / aktifleştir / denetle." onPress={() => router.push('/admin/businesses')} />}
           </>
         )}
 
         {/* Yardım & yasal */}
         <Text style={s.sectionLabel}>Yardım & Yasal</Text>
-        <Card icon="card-outline" title="Ödeme Bağlama Rehberi" desc="iyzico/Stripe nasıl bağlanır." onPress={() => router.push('/payment-guide')} />
+        <Card icon="mail-outline" title="Destek & Geri Bildirim" desc="Bize yaz: o.y.baser@gmail.com" onPress={() => Linking.openURL('mailto:o.y.baser@gmail.com?subject=yapp%20Geri%20Bildirim')} />
         <Card icon="document-text-outline" title="Kullanım Sözleşmesi" desc="Şartlar ve koşullar." onPress={() => router.push('/terms')} />
 
         <TouchableOpacity style={s.logoutBtn} onPress={doLogout}>

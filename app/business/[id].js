@@ -1,11 +1,11 @@
 // İşletme yönetimi: modülleri aç/kapa, yayınla, önizle, ödeme ayarları.
 import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Alert, ActivityIndicator, Modal, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Switch, Alert, ActivityIndicator, Modal, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { getBusiness, updateConfig, publishBusiness, deleteBusiness, uploadBusinessImage, deleteBusinessImage, mediaUrl, priceEstimate } from '../../src/api/client';
+import { getBusiness, updateConfig, publishBusiness, deleteBusiness, uploadBusinessImage, deleteBusinessImage, mediaUrl, priceEstimate, updateBusiness, uploadLogo } from '../../src/api/client';
 import { COLORS, SIZES } from '../../src/theme';
 import { AppIcon, moduleIcon } from '../../src/icons';
 import { MODULE_INFO } from '../../src/modules';
@@ -24,6 +24,7 @@ export default function ManageBusiness() {
   const [uploading, setUploading] = useState(false);
   const [priceModal, setPriceModal] = useState(false);
   const [price, setPrice] = useState(null);
+  const [name, setName] = useState('');
 
   const load = useCallback(async () => {
     try {
@@ -31,6 +32,7 @@ export default function ManageBusiness() {
       setData(d);
       setEnabled(d.config?.modules_enabled || []);
       setImages(d.business?.promo_images || []);
+      setName(d.business?.name || '');
     } catch (e) { console.warn('getBusiness', e?.message); }
   }, [id]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
@@ -47,6 +49,20 @@ export default function ManageBusiness() {
   };
   const removeImage = async (url) => {
     try { setImages(await deleteBusinessImage(id, url)); } catch { Alert.alert('Hata', 'Silinemedi'); }
+  };
+
+  const changeLogo = async () => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) return Alert.alert('İzin gerekli', 'Galeriye erişim izni verin.');
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7, allowsEditing: true, aspect: [1, 1] });
+    if (res.canceled || !res.assets?.[0]) return;
+    try { const url = await uploadLogo(id, res.assets[0].uri); setData((d) => ({ ...d, business: { ...d.business, logo_url: url } })); }
+    catch { Alert.alert('Hata', 'Logo yüklenemedi'); }
+  };
+  const saveName = async () => { if (name.trim() && name !== data.business.name) await updateBusiness(id, { name: name.trim() }); };
+  const setAccess = async (mode) => {
+    const b = await updateBusiness(id, { access_mode: mode });
+    setData((d) => ({ ...d, business: { ...d.business, access_mode: b.access_mode, join_code: b.join_code } }));
   };
 
   if (!data) return <SafeAreaView style={s.safe}><ActivityIndicator style={{ marginTop: 60 }} color={COLORS.primary} /></SafeAreaView>;
@@ -97,8 +113,11 @@ export default function ManageBusiness() {
 
       <ScrollView contentContainerStyle={{ padding: SIZES.pad, paddingBottom: 40 }}>
         <View style={s.hero}>
-          <AppIcon sectorKey={biz.sector_key} color={theme} size={76} radius={18} />
-          <Text style={s.name}>{biz.name}</Text>
+          <TouchableOpacity onPress={changeLogo} activeOpacity={0.8}>
+            <AppIcon sectorKey={biz.sector_key} color={theme} size={76} radius={18} logo={biz.logo_url} />
+            <View style={[s.logoEdit, { backgroundColor: theme }]}><Ionicons name="camera" size={14} color="#fff" /></View>
+          </TouchableOpacity>
+          <TextInput style={s.nameInput} value={name} onChangeText={setName} onBlur={saveName} placeholder="App adı" placeholderTextColor="#B0B0C0" textAlign="center" />
           <Text style={s.slug}>yapp.app/{biz.share_slug}</Text>
           <View style={[s.statusPill, { backgroundColor: biz.status === 'active' ? '#E7F7EF' : '#F1F1F7' }]}>
             <Ionicons name={biz.status === 'active' ? 'checkmark-circle' : 'ellipse-outline'} size={14} color={biz.status === 'active' ? COLORS.success : COLORS.muted} />
@@ -107,6 +126,28 @@ export default function ManageBusiness() {
             </Text>
           </View>
         </View>
+
+        <Text style={s.sectionTitle}>Erişim</Text>
+        <Text style={s.sectionSub}>Herkese açık mı, yoksa sadece onayladığın üyeler mi kullanabilsin?</Text>
+        <View style={s.segment}>
+          {[['public', 'Herkese Açık'], ['private', 'Özel (üyelik)']].map(([v, l]) => (
+            <TouchableOpacity key={v} style={[s.segItem, (biz.access_mode || 'public') === v && { backgroundColor: theme }]} onPress={() => setAccess(v)}>
+              <Text style={[s.segText, (biz.access_mode || 'public') === v && { color: '#fff' }]}>{l}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        {biz.access_mode === 'private' && (
+          <View style={s.accessBox}>
+            <View style={{ flex: 1 }}>
+              <Text style={s.accessLabel}>Katılım Kodu</Text>
+              <Text style={[s.accessCode, { color: theme }]}>{biz.join_code || '—'}</Text>
+            </View>
+            <TouchableOpacity style={[s.membersBtn, { borderColor: theme }]} onPress={() => router.push(`/members/${id}`)}>
+              <Ionicons name="people" size={16} color={theme} />
+              <Text style={[s.membersText, { color: theme }]}>Üyeler</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {biz.status !== 'active' && (
           <TouchableOpacity style={[s.publishBtn, { backgroundColor: theme }]} onPress={openPublish}>
@@ -219,8 +260,17 @@ const s = StyleSheet.create({
   previewBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 16, paddingVertical: 9, borderRadius: 10 },
   previewText: { color: '#fff', fontWeight: '700' },
   hero: { alignItems: 'center', marginBottom: 18 },
-  name: { fontSize: 24, fontWeight: '800', color: COLORS.text, marginTop: 10 },
+  logoEdit: { position: 'absolute', bottom: 0, right: -2, width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff' },
+  nameInput: { fontSize: 24, fontWeight: '800', color: COLORS.text, marginTop: 10, minWidth: 200, paddingVertical: 2 },
   slug: { fontSize: 13, color: COLORS.muted, marginTop: 4 },
+  segment: { flexDirection: 'row', backgroundColor: '#ECECF4', borderRadius: 12, padding: 4 },
+  segItem: { flex: 1, paddingVertical: 11, borderRadius: 9, alignItems: 'center' },
+  segText: { fontWeight: '700', color: COLORS.muted },
+  accessBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 14, marginTop: 10 },
+  accessLabel: { fontSize: 12, color: COLORS.muted, fontWeight: '600' },
+  accessCode: { fontSize: 22, fontWeight: '900', letterSpacing: 2, marginTop: 2 },
+  membersBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10, borderWidth: 1.5 },
+  membersText: { fontWeight: '700' },
   statusPill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, marginTop: 10 },
   statusText: { fontWeight: '700', fontSize: 13 },
   publishBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, paddingVertical: 16, marginBottom: 18 },
