@@ -5,6 +5,68 @@
 
 ---
 
+## 0. GÜNCEL DURUM (en son — buradan oku)
+
+**16 modülün TAMAMI aktif** (artık "yapım aşamasında" yok). Commit zinciri:
+`da7d645`(CP1) → `f2aadd9`(CP2) → `c8ed8ba`(CP3) → `c77dd7d`(CP4) → `ebcf86a`(CP5) →
+`40d446c`(Batch A/booking backbone) → `8e17237`(B) → `fc71fc6`(C) → `ccf3f81`(D).
+
+### Modül mimarisi (ÖNEMLİ — generic backbone)
+İki generic Postgres tablosu tüm modülleri besler (modül-başına tablo YOK):
+- `module_items` (business_id, module, data jsonb, position) → **satıcı içeriği**
+  (hizmetler, ürünler, kampanyalar, planlar, galeri görselleri, üyelik planları, ekip, duyurular, loyalty config).
+- `module_entries` (business_id, module, user_id, data jsonb, status) → **müşteri/işlem kayıtları**
+  (randevular, siparişler, yorumlar, ölçümler, mesajlar, takip, üyelikler, ödemeler, loyalty kartları).
+
+Backend: `src/routes/modules.routes.js` — `/api/m/:businessId/:module/...`:
+- `GET/POST/PUT/DELETE .../items` (yazma = requireBusinessRole admin)
+- `GET/POST/PUT/DELETE .../entries` (GET: staff hepsini, müşteri kendi user_id'sini görür)
+- `POST .../entries` body `target_user_id` → **staff, müşteri adına kayıt açar** (mesaj yanıtı, ödeme)
+- `POST .../upload` (multer) → görseli item olarak ekler (gallery)
+- `GET .../booking/slots?date=&duration=` → çalışma saatleri + dolu randevulardan boş slot üretir
+
+Frontend: `src/modules/registry.js` → `CUSTOMER{}` + `MANAGE{}` map'leri (modül key → bileşen).
+- `src/modules/customer/<Mod>.js` = müşteri görünümü (runtime `app/run/[slug].js` içinde render).
+- `src/modules/manage/<Mod>.js` = satıcı yönetimi (`app/manage/[id]/[module].js` route'unda render).
+- Yeni modül eklemek = 2 bileşen yaz + registry'ye ekle (yeni tablo/route gerekmez).
+- Client API: `src/api/client.js` → getItems/createItem/.../getEntries/createEntry/createEntryFor/
+  bookingSlots/uploadModuleImage/mediaUrl.
+
+### 16 modülün durumu
+| Modül | Müşteri | Satıcı | Not |
+|---|---|---|---|
+| booking | hizmet→tarih→slot→randevu, randevularım+iptal | hizmet CRUD, çalışma saati, randevu on/iptal | **bayrak, tam** |
+| catalog | kategori-gruplu menü | ürün CRUD | |
+| ordering | sepet→sipariş, siparişlerim | sipariş kuyruğu + durum akışı | catalog'a bağlı |
+| campaigns | kampanya listesi | kampanya CRUD | |
+| loyalty | damga kartı + ilerleme | hedef/ödül + müşteri kartına damga | kart müşteri açınca oluşur |
+| subscriptions | plan→abone→üyelik kartı+QR kod | plan CRUD + üyeler + check-in | |
+| records | kendi ölçümü gir/listele | müşteri ölçümleri (gruplu, salt-okunur) | dosya yükleme YOK (sonra) |
+| plans | program oku (akordeon) | program CRUD | genel (müşteri-özel değil) |
+| tracker | adım/su/kalori gir + bugün özeti | müşteri takipleri | telefon sensörü YOK, elle giriş |
+| messaging | thread + gönder | thread listesi + yanıt | target_user_id ile çalışır |
+| reviews | puan+yorum bırak, ortalama | ortalama + liste | |
+| gallery | görsel ızgarası | görsel yükle/sil | |
+| profile | adres(harita)/tel(ara)/saat | bilgileri düzenle | |
+| staff | ekip listesi | ekip CRUD | |
+| payments | kendi ödemeleri + toplam | ödeme defteri (ad/tutar/toplam) | tahsilat dev geçidinden; bu defter takip |
+| push | uygulama içi duyuru listesi | duyuru yayınla | **gerçek APNs push YOK** — in-app; sonraki altyapı |
+
+### Bilinen sınırlar / sonraki işler
+- **Gerçek push (APNs/Expo Notifications)** kurulmadı — push modülü şimdilik in-app duyuru. Dev build + entitlement + token kaydı + Expo push send gerekir.
+- **Records dosya yükleme** (PDF/PNG cihaz çıktısı) yok — şimdilik elle alanlar.
+- **Payments müşteri-bağlama**: satıcı ödeme defteri müşteri user_id'sine bağlı değil (isim yazılıyor). Müşteri "Ödemelerim" ancak target_user_id ile bağlanırsa dolu görünür. Roster/müşteri seçici sonra.
+- **Tracker** telefon pedometre entegrasyonu yok (elle giriş).
+- Booking dışındaki modüller "fonksiyonel/sağlam" seviyede; booking "tam".
+
+### ⚠️ DEPLOY GOTCHA (tekrar etme)
+Prod'da `psql` ile **postgres superuser** olarak TABLO oluşturursan sahibi postgres olur →
+`yapp` rolü "permission denied" alır. Yeni tablo eklersen mutlaka:
+`ALTER TABLE x OWNER TO yapp; ALTER SEQUENCE x_id_seq OWNER TO yapp;`
+(module_items/module_entries bunu yaşadı, düzeltildi.)
+
+---
+
 ## 1. yapp nedir (mantık)
 
 İşletmeler için **App Store / Play Store + Steam** karması. **Tek native uygulama** (yapp,
