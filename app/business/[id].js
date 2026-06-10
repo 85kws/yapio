@@ -1,10 +1,11 @@
 // İşletme yönetimi: modülleri aç/kapa, yayınla, önizle, ödeme ayarları.
 import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Alert, ActivityIndicator, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Alert, ActivityIndicator, Modal, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { getBusiness, updateConfig, publishBusiness, deleteBusiness } from '../../src/api/client';
+import * as ImagePicker from 'expo-image-picker';
+import { getBusiness, updateConfig, publishBusiness, deleteBusiness, uploadBusinessImage, deleteBusinessImage, mediaUrl } from '../../src/api/client';
 import { COLORS, SIZES } from '../../src/theme';
 import { AppIcon, moduleIcon } from '../../src/icons';
 import { MODULE_INFO } from '../../src/modules';
@@ -19,15 +20,32 @@ export default function ManageBusiness() {
   const [enabled, setEnabled] = useState([]);
   const [saving, setSaving] = useState(false);
   const [infoModule, setInfoModule] = useState(null);
+  const [images, setImages] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   const load = useCallback(async () => {
     try {
       const d = await getBusiness(id);
       setData(d);
       setEnabled(d.config?.modules_enabled || []);
+      setImages(d.business?.promo_images || []);
     } catch (e) { console.warn('getBusiness', e?.message); }
   }, [id]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  const addImage = async () => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) return Alert.alert('İzin gerekli', 'Galeriye erişim izni verin.');
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
+    if (res.canceled || !res.assets?.[0]) return;
+    setUploading(true);
+    try { setImages(await uploadBusinessImage(id, res.assets[0].uri)); }
+    catch (e) { Alert.alert('Hata', 'Görsel yüklenemedi'); }
+    finally { setUploading(false); }
+  };
+  const removeImage = async (url) => {
+    try { setImages(await deleteBusinessImage(id, url)); } catch { Alert.alert('Hata', 'Silinemedi'); }
+  };
 
   if (!data) return <SafeAreaView style={s.safe}><ActivityIndicator style={{ marginTop: 60 }} color={COLORS.primary} /></SafeAreaView>;
 
@@ -87,6 +105,22 @@ export default function ManageBusiness() {
           </TouchableOpacity>
         )}
 
+        <Text style={s.sectionTitle}>Mağaza Görselleri</Text>
+        <Text style={s.sectionSub}>Vitrindeki mağaza sayfanda görünür (ekran görüntüleri, tanıtım).</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingBottom: 4 }}>
+          {images.map((u) => (
+            <View key={u} style={s.shotWrap}>
+              <Image source={{ uri: mediaUrl(u) }} style={s.shot} resizeMode="cover" />
+              <TouchableOpacity style={s.shotDel} onPress={() => removeImage(u)}>
+                <Ionicons name="close" size={16} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          ))}
+          <TouchableOpacity style={s.shotAdd} onPress={addImage} disabled={uploading}>
+            {uploading ? <ActivityIndicator color={theme} /> : <><Ionicons name="add" size={28} color={theme} /><Text style={[s.shotAddText, { color: theme }]}>Ekle</Text></>}
+          </TouchableOpacity>
+        </ScrollView>
+
         <Text style={s.sectionTitle}>Özellikler {saving ? <Text style={s.saving}>· kaydediliyor</Text> : null}</Text>
         <Text style={s.sectionSub}>App'inde hangi modüller olsun?</Text>
         <View style={s.modList}>
@@ -136,8 +170,13 @@ const s = StyleSheet.create({
   statusText: { fontWeight: '700', fontSize: 13 },
   publishBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, paddingVertical: 16, marginBottom: 18 },
   publishText: { color: '#fff', fontWeight: '800', fontSize: 17 },
-  sectionTitle: { fontSize: 18, fontWeight: '800', color: COLORS.text, marginTop: 6 },
+  sectionTitle: { fontSize: 18, fontWeight: '800', color: COLORS.text, marginTop: 22 },
   saving: { fontSize: 13, color: COLORS.muted, fontWeight: '500' },
+  shotWrap: { position: 'relative' },
+  shot: { width: 110, height: 200, borderRadius: 12, backgroundColor: '#ECECF4' },
+  shotDel: { position: 'absolute', top: 6, right: 6, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
+  shotAdd: { width: 110, height: 200, borderRadius: 12, borderWidth: 2, borderColor: COLORS.border, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
+  shotAddText: { fontWeight: '700', marginTop: 4 },
   sectionSub: { fontSize: 14, color: COLORS.muted, marginBottom: 12 },
   modList: { backgroundColor: COLORS.card, borderRadius: 16, paddingHorizontal: 16, overflow: 'hidden' },
   modRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: COLORS.border, gap: 12 },

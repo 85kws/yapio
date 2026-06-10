@@ -64,4 +64,17 @@ export const updateConfig = (id, data) => api.put(`/businesses/${id}/config`, da
 export const publishBusiness = (id) => api.post(`/businesses/${id}/publish`).then((r) => r.data.business);
 export const deleteBusiness = (id) => api.delete(`/businesses/${id}`).then((r) => r.data);
 
+// Mağaza görseli yükle/sil
+export const uploadBusinessImage = (id, uri) => {
+  const name = uri.split('/').pop() || 'photo.jpg';
+  const ext = (name.split('.').pop() || 'jpg').toLowerCase();
+  const form = new FormData();
+  form.append('image', { uri, name, type: `image/${ext === 'jpg' ? 'jpeg' : ext}` });
+  return api.post(`/businesses/${id}/images`, form, { headers: { 'Content-Type': 'multipart/form-data' } }).then((r) => r.data.promo_images);
+};
+export const deleteBusinessImage = (id, url) => api.delete(`/businesses/${id}/images`, { data: { url } }).then((r) => r.data.promo_images);
+
+// Göreli medya yolunu tam URL'ye çevirir.
+export const mediaUrl = (p) => (!p ? null : p.startsWith('http') ? p : `${API_BASE}${p}`);
+
 export default api;

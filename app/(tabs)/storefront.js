@@ -61,7 +61,7 @@ export default function Storefront() {
         renderItem={({ item }) => {
           const theme = item.theme_json?.color || COLORS.primary;
           return (
-            <TouchableOpacity style={s.card} activeOpacity={0.8} onPress={() => router.push(`/run/${item.share_slug}`)}>
+            <TouchableOpacity style={s.card} activeOpacity={0.8} onPress={() => router.push(`/store/${item.share_slug}`)}>
               <AppIcon sectorKey={item.sector_key} color={theme} size={54} />
               <View style={{ flex: 1 }}>
                 <Text style={s.cardName}>{item.name}</Text>

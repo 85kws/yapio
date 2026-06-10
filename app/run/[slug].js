@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { getAppBySlug, install, uninstall, getInstalls } from '../../src/api/client';
+import { getAppBySlug } from '../../src/api/client';
 import { COLORS } from '../../src/theme';
 import { moduleIcon, sectorIcon } from '../../src/icons';
 import { MODULE_INFO } from '../../src/modules';
@@ -15,15 +15,12 @@ export default function RunApp() {
   const router = useRouter();
   const { slug } = useLocalSearchParams();
   const [data, setData] = useState(null);
-  const [installed, setInstalled] = useState(false);
   const [openModule, setOpenModule] = useState(null);
 
   const load = useCallback(async () => {
     try {
       const d = await getAppBySlug(slug);
       setData(d);
-      const ins = await getInstalls().catch(() => []);
-      setInstalled(ins.some((a) => a.share_slug === slug));
     } catch (e) {
       Alert.alert('Bulunamadı', e?.response?.data?.error || 'App yüklenemedi');
       router.back();
@@ -37,13 +34,6 @@ export default function RunApp() {
   const theme = biz.theme_json?.color || COLORS.primary;
   const modules = data.config?.modules_enabled || [];
   const landing = data.config?.landing_blocks || [];
-
-  const toggleInstall = async () => {
-    try {
-      if (installed) { await uninstall(biz.id); setInstalled(false); }
-      else { await install(biz.id); setInstalled(true); }
-    } catch (e) { Alert.alert('Hata', e?.message); }
-  };
 
   const onNavigate = (key) => { if (MODULE_INFO[key]) setOpenModule(key); };
 
@@ -94,17 +84,8 @@ export default function RunApp() {
 
           {biz.address ? <View style={s.metaRow}><Ionicons name="location-outline" size={16} color={COLORS.muted} /><Text style={s.meta}>{biz.address}</Text></View> : null}
           {biz.phone ? <View style={s.metaRow}><Ionicons name="call-outline" size={16} color={COLORS.muted} /><Text style={s.meta}>{biz.phone}</Text></View> : null}
-          <View style={{ height: 90 }} />
+          <View style={{ height: 30 }} />
         </ScrollView>
-      )}
-
-      {!openModule && (
-        <SafeAreaView edges={['bottom']} style={s.footer}>
-          <TouchableOpacity style={[s.installBtn, { backgroundColor: installed ? '#fff' : theme, borderColor: theme, borderWidth: installed ? 2 : 0 }]} onPress={toggleInstall}>
-            <Ionicons name={installed ? 'checkmark' : 'download-outline'} size={18} color={installed ? theme : '#fff'} />
-            <Text style={[s.installText, { color: installed ? theme : '#fff' }]}>{installed ? 'İndirildi — Kaldır' : 'İndir'}</Text>
-          </TouchableOpacity>
-        </SafeAreaView>
       )}
     </View>
   );
