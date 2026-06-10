@@ -86,9 +86,19 @@ export const deleteItem = (bid, module, itemId) => api.delete(`/m/${bid}/${modul
 
 export const getEntries = (bid, module) => api.get(`/m/${bid}/${module}/entries`).then((r) => r.data);
 export const createEntry = (bid, module, data, status) => api.post(`/m/${bid}/${module}/entries`, { data, status }).then((r) => r.data.entry);
+// Satıcı, target_user_id ile müşteri adına kayıt açar (mesaj yanıtı, ödeme kaydı)
+export const createEntryFor = (bid, module, targetUserId, data, status) => api.post(`/m/${bid}/${module}/entries`, { data, status, target_user_id: targetUserId }).then((r) => r.data.entry);
 export const updateEntry = (bid, module, entryId, patch) => api.put(`/m/${bid}/${module}/entries/${entryId}`, patch).then((r) => r.data.entry);
 export const deleteEntry = (bid, module, entryId) => api.delete(`/m/${bid}/${module}/entries/${entryId}`).then((r) => r.data);
 
 export const bookingSlots = (bid, date, duration) => api.get(`/m/${bid}/booking/slots`, { params: { date, duration } }).then((r) => r.data);
+
+export const uploadModuleImage = (bid, module, uri) => {
+  const name = uri.split('/').pop() || 'photo.jpg';
+  const ext = (name.split('.').pop() || 'jpg').toLowerCase();
+  const form = new FormData();
+  form.append('image', { uri, name, type: `image/${ext === 'jpg' ? 'jpeg' : ext}` });
+  return api.post(`/m/${bid}/${module}/upload`, form, { headers: { 'Content-Type': 'multipart/form-data' } }).then((r) => r.data.item);
+};
 
 export default api;
