@@ -33,6 +33,7 @@ export const authApple = (identityToken, name) => api.post('/auth/apple', { iden
 export const authGoogle = (idToken) => api.post('/auth/google', { idToken }).then((r) => r.data);
 export const getMe = () => api.get('/auth/me').then((r) => r.data.user);
 export const becomeDev = () => api.post('/auth/become-dev').then((r) => r.data.user);
+export const acceptTerms = () => api.post('/auth/accept-terms').then((r) => r.data.user);
 
 // ---- Taksonomi ----
 export const getSectors = () => api.get('/sectors').then((r) => r.data.sectors);

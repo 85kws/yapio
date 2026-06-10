@@ -1,6 +1,6 @@
 // Auth state: token yükle, kullanıcı getir, giriş/çıkış.
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { setToken, loadToken, getMe, authDev, becomeDev } from '../api/client';
+import { setToken, loadToken, getMe, authDev, becomeDev, acceptTerms } from '../api/client';
 
 const AuthCtx = createContext(null);
 
@@ -40,8 +40,13 @@ export function AuthProvider({ children }) {
     setUser(u);
   };
 
+  const acceptTermsNow = async () => {
+    const u = await acceptTerms();
+    setUser(u);
+  };
+
   return (
-    <AuthCtx.Provider value={{ user, loading, loginDev, logout, upgradeToDev, refresh, setUser }}>
+    <AuthCtx.Provider value={{ user, loading, loginDev, logout, upgradeToDev, acceptTermsNow, refresh, setUser }}>
       {children}
     </AuthCtx.Provider>
   );

@@ -9,21 +9,33 @@ import { COLORS } from '../src/theme';
 
 export default function Login() {
   const router = useRouter();
-  const { loginDev } = useAuth();
+  const { loginDev, acceptTermsNow } = useAuth();
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
+  const [accepted, setAccepted] = useState(false);
+
+  const requireAccept = () => {
+    Alert.alert('Onay gerekli', 'Devam etmek için Kullanım Sözleşmesi\'ni kabul etmelisin.');
+  };
 
   const doDevLogin = async () => {
+    if (!accepted) return requireAccept();
     if (!name.trim()) return Alert.alert('İsim gerekli', 'Devam için bir isim gir.');
     setBusy(true);
     try {
       await loginDev(name.trim());
+      await acceptTermsNow().catch(() => {});
       router.replace('/(tabs)/storefront');
     } catch (e) {
       Alert.alert('Giriş başarısız', e?.message || 'Sunucuya ulaşılamadı. Backend açık mı?');
     } finally {
       setBusy(false);
     }
+  };
+
+  const social = (provider) => {
+    if (!accepted) return requireAccept();
+    Alert.alert('Yakında', `${provider} ile giriş sonraki adımda bağlanacak.`);
   };
 
   return (
@@ -43,19 +55,29 @@ export default function Login() {
           placeholderTextColor="#B0B0C0"
           autoFocus
         />
-        <TouchableOpacity style={s.primaryBtn} onPress={doDevLogin} disabled={busy}>
+        <TouchableOpacity style={[s.primaryBtn, !accepted && s.btnDisabled]} onPress={doDevLogin} disabled={busy}>
           {busy ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryText}>Devam Et</Text>}
         </TouchableOpacity>
 
         <View style={s.divider}><View style={s.line} /><Text style={s.or}>veya</Text><View style={s.line} /></View>
 
-        <TouchableOpacity style={[s.socialBtn, { backgroundColor: '#000' }]} onPress={() => Alert.alert('Yakında', 'Apple ile giriş sonraki adımda bağlanacak.')}>
+        <TouchableOpacity style={[s.socialBtn, { backgroundColor: '#000' }, !accepted && s.btnDisabled]} onPress={() => social('Apple')}>
           <Ionicons name="logo-apple" size={20} color="#fff" />
           <Text style={s.socialText}>Apple ile Giriş</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[s.socialBtn, { backgroundColor: '#fff', borderWidth: 1, borderColor: COLORS.border }]} onPress={() => Alert.alert('Yakında', 'Google ile giriş sonraki adımda bağlanacak.')}>
+        <TouchableOpacity style={[s.socialBtn, { backgroundColor: '#fff', borderWidth: 1, borderColor: COLORS.border }, !accepted && s.btnDisabled]} onPress={() => social('Google')}>
           <Ionicons name="logo-google" size={20} color={COLORS.text} />
           <Text style={[s.socialText, { color: COLORS.text }]}>Google ile Giriş</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={s.acceptRow} onPress={() => setAccepted((v) => !v)} activeOpacity={0.7}>
+          <View style={[s.checkbox, accepted && s.checkboxOn]}>
+            {accepted ? <Ionicons name="checkmark" size={15} color="#fff" /> : null}
+          </View>
+          <Text style={s.acceptText}>
+            <Text style={s.acceptLink} onPress={() => router.push('/terms')}>Kullanım Sözleşmesi</Text>
+            'ni okudum ve kabul ediyorum.
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -78,6 +100,12 @@ const s = StyleSheet.create({
   line: { flex: 1, height: 1, backgroundColor: COLORS.border },
   or: { color: COLORS.muted, marginHorizontal: 12, fontSize: 13 },
   socialBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, paddingVertical: 15, marginBottom: 10 },
+  btnDisabled: { opacity: 0.4 },
+  acceptRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 14 },
+  checkbox: { width: 24, height: 24, borderRadius: 7, borderWidth: 2, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+  checkboxOn: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  acceptText: { flex: 1, fontSize: 13, color: COLORS.muted, lineHeight: 19 },
+  acceptLink: { color: COLORS.primary, fontWeight: '700' },
   socialText: { color: '#fff', fontWeight: '700', fontSize: 16 },
   note: { textAlign: 'center', color: COLORS.muted, fontSize: 12, marginTop: 20 },
 });
