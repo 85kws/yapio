@@ -1,0 +1,30 @@
+{
+  "cli": {
+    "version": ">= 12.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": { "simulator": false },
+      "android": { "buildType": "apk" }
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6778594032",
+        "ascApiKeyPath": "/home/yigit/caloriday-ios-signing/AuthKey_QJT4TH5633.p8",
+        "ascApiKeyId": "QJT4TH5633",
+        "ascApiKeyIssuerId": "662f4083-11b0-40dd-8e49-1fbecf6e3c90"
+      }
+    }
+  }
+}
