@@ -78,4 +78,17 @@ export const deleteBusinessImage = (id, url) => api.delete(`/businesses/${id}/im
 // Göreli medya yolunu tam URL'ye çevirir.
 export const mediaUrl = (p) => (!p ? null : p.startsWith('http') ? p : `${API_BASE}${p}`);
 
+// ---- Generic modül verisi ----
+export const getItems = (bid, module) => api.get(`/m/${bid}/${module}/items`).then((r) => r.data.items);
+export const createItem = (bid, module, data, position) => api.post(`/m/${bid}/${module}/items`, { data, position }).then((r) => r.data.item);
+export const updateItem = (bid, module, itemId, data, position) => api.put(`/m/${bid}/${module}/items/${itemId}`, { data, position }).then((r) => r.data.item);
+export const deleteItem = (bid, module, itemId) => api.delete(`/m/${bid}/${module}/items/${itemId}`).then((r) => r.data);
+
+export const getEntries = (bid, module) => api.get(`/m/${bid}/${module}/entries`).then((r) => r.data);
+export const createEntry = (bid, module, data, status) => api.post(`/m/${bid}/${module}/entries`, { data, status }).then((r) => r.data.entry);
+export const updateEntry = (bid, module, entryId, patch) => api.put(`/m/${bid}/${module}/entries/${entryId}`, patch).then((r) => r.data.entry);
+export const deleteEntry = (bid, module, entryId) => api.delete(`/m/${bid}/${module}/entries/${entryId}`).then((r) => r.data);
+
+export const bookingSlots = (bid, date, duration) => api.get(`/m/${bid}/booking/slots`, { params: { date, duration } }).then((r) => r.data);
+
 export default api;

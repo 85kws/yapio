@@ -141,6 +141,11 @@ export default function ManageBusiness() {
                 <Text style={s.modLabel}>{MODULE_INFO[key].label}</Text>
                 <Ionicons name="information-circle-outline" size={16} color={COLORS.muted} />
               </TouchableOpacity>
+              {enabled.includes(key) && (
+                <TouchableOpacity style={[s.manageBtn, { borderColor: theme }]} onPress={() => router.push(`/manage/${id}/${key}`)}>
+                  <Text style={[s.manageText, { color: theme }]}>Yönet</Text>
+                </TouchableOpacity>
+              )}
               <Switch
                 value={enabled.includes(key)}
                 onValueChange={() => toggle(key)}
@@ -233,6 +238,8 @@ const s = StyleSheet.create({
   modIconBox: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#F1F1F7', alignItems: 'center', justifyContent: 'center' },
   modLabelWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   modLabel: { fontSize: 16, color: COLORS.text, fontWeight: '600' },
+  manageBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1.5, marginRight: 8 },
+  manageText: { fontSize: 13, fontWeight: '700' },
   linkRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.card, borderRadius: 14, padding: 16, marginTop: 16 },
   linkText: { flex: 1, fontSize: 15, fontWeight: '600', color: COLORS.text },
   deleteBtn: { alignItems: 'center', paddingVertical: 18, marginTop: 10 },

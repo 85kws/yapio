@@ -9,6 +9,7 @@ import { getAppBySlug } from '../../src/api/client';
 import { COLORS } from '../../src/theme';
 import { moduleIcon, sectorIcon } from '../../src/icons';
 import { MODULE_INFO } from '../../src/modules';
+import { CUSTOMER } from '../../src/modules/registry';
 import BlockRenderer from '../../src/blocks/BlockRenderer';
 
 export default function RunApp() {
@@ -36,6 +37,7 @@ export default function RunApp() {
   const landing = data.config?.landing_blocks || [];
 
   const onNavigate = (key) => { if (MODULE_INFO[key]) setOpenModule(key); };
+  const ModuleView = openModule ? CUSTOMER[openModule] : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -52,12 +54,16 @@ export default function RunApp() {
       </SafeAreaView>
 
       {openModule ? (
-        <View style={s.stub}>
-          <View style={[s.stubIcon, { backgroundColor: theme }]}><Ionicons name={moduleIcon(openModule)} size={40} color="#fff" /></View>
-          <Text style={s.stubTitle}>{MODULE_INFO[openModule].label}</Text>
-          <Text style={s.stubDesc}>{MODULE_INFO[openModule].detail}</Text>
-          <View style={[s.soon, { backgroundColor: theme }]}><Text style={s.soonText}>Bu modül yapım aşamasında</Text></View>
-        </View>
+        ModuleView ? (
+          <View style={{ flex: 1 }}><ModuleView businessId={biz.id} theme={theme} business={biz} /></View>
+        ) : (
+          <View style={s.stub}>
+            <View style={[s.stubIcon, { backgroundColor: theme }]}><Ionicons name={moduleIcon(openModule)} size={40} color="#fff" /></View>
+            <Text style={s.stubTitle}>{MODULE_INFO[openModule].label}</Text>
+            <Text style={s.stubDesc}>{MODULE_INFO[openModule].detail}</Text>
+            <View style={[s.soon, { backgroundColor: theme }]}><Text style={s.soonText}>Bu modül yapım aşamasında</Text></View>
+          </View>
+        )
       ) : (
         <ScrollView contentContainerStyle={s.content}>
           {landing.map((b, i) => (
