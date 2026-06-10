@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { getBusiness, updateConfig, publishBusiness, deleteBusiness, uploadBusinessImage, deleteBusinessImage, mediaUrl } from '../../src/api/client';
+import { getBusiness, updateConfig, publishBusiness, deleteBusiness, uploadBusinessImage, deleteBusinessImage, mediaUrl, priceEstimate } from '../../src/api/client';
 import { COLORS, SIZES } from '../../src/theme';
 import { AppIcon, moduleIcon } from '../../src/icons';
 import { MODULE_INFO } from '../../src/modules';
@@ -22,6 +22,8 @@ export default function ManageBusiness() {
   const [infoModule, setInfoModule] = useState(null);
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [priceModal, setPriceModal] = useState(false);
+  const [price, setPrice] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -60,9 +62,17 @@ export default function ManageBusiness() {
     finally { setSaving(false); }
   };
 
-  const publish = async () => {
-    try { const b = await publishBusiness(id); setData({ ...data, business: b }); Alert.alert('Yayında!', 'App vitrinde görünüyor artık.'); }
-    catch (e) { Alert.alert('Hata', e?.message || 'Yayınlanamadı'); }
+  const openPublish = async () => {
+    try { setPrice(await priceEstimate(id)); setPriceModal(true); }
+    catch (e) { Alert.alert('Hata', 'Fiyat hesaplanamadı'); }
+  };
+  const confirmPublish = async () => {
+    try {
+      const b = await publishBusiness(id);
+      setData({ ...data, business: b });
+      setPriceModal(false);
+      Alert.alert('Yayında!', 'App vitrinde görünüyor artık.');
+    } catch (e) { Alert.alert('Hata', e?.message || 'Yayınlanamadı'); }
   };
 
   const confirmDelete = () => {
@@ -99,7 +109,7 @@ export default function ManageBusiness() {
         </View>
 
         {biz.status !== 'active' && (
-          <TouchableOpacity style={[s.publishBtn, { backgroundColor: theme }]} onPress={publish}>
+          <TouchableOpacity style={[s.publishBtn, { backgroundColor: theme }]} onPress={openPublish}>
             <Ionicons name="rocket" size={18} color="#fff" />
             <Text style={s.publishText}>Yayınla</Text>
           </TouchableOpacity>
@@ -151,10 +161,50 @@ export default function ManageBusiness() {
         </TouchableOpacity>
       </ScrollView>
 
+      {/* Yayınla — fiyat onayı */}
+      <Modal visible={priceModal} transparent animationType="slide" onRequestClose={() => setPriceModal(false)}>
+        <View style={s.sheetBg}>
+          <View style={s.sheet}>
+            <View style={s.sheetHandle} />
+            <Text style={s.sheetTitle}>Yayınlamadan önce</Text>
+            <Text style={s.sheetSub}>Tahmini aylık ücret. Abonelik değil — yalnızca kullandığın kadar ödersin.</Text>
+
+            {price && (
+              <ScrollView style={{ maxHeight: 320 }}>
+                <Row label="Platform tabanı" val={`${price.platform_base} ₺`} />
+                {price.modules.filter((m) => m.cost > 0).map((m) => (
+                  <Row key={m.key} label={MODULE_INFO[m.key]?.label || m.key} val={`${m.cost} ₺`} />
+                ))}
+                <View style={s.totalRow}>
+                  <Text style={s.totalLabel}>Tahmini / ay</Text>
+                  <Text style={[s.totalVal, { color: theme }]}>~{price.monthly} ₺</Text>
+                </View>
+                <View style={s.usageNote}>
+                  <Text style={s.usageTitle}>Kullanıma göre eklenir:</Text>
+                  <Text style={s.usageLine}>• İlk {price.rates.mau_free} aktif müşteri ücretsiz, sonrası {price.rates.mau_each} ₺/müşteri</Text>
+                  <Text style={s.usageLine}>• Bildirim: {price.rates.push_per_1000} ₺ / 1000 adet</Text>
+                  <Text style={s.usageLine}>• Medya: {price.rates.media_per_gb} ₺ / GB</Text>
+                </View>
+              </ScrollView>
+            )}
+
+            <TouchableOpacity style={[s.confirmBtn, { backgroundColor: theme }]} onPress={confirmPublish}>
+              <Ionicons name="rocket" size={18} color="#fff" />
+              <Text style={s.confirmText}>Onayla ve Yayınla</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setPriceModal(false)}><Text style={s.cancelText}>Vazgeç</Text></TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <ModuleInfoModal moduleKey={infoModule} theme={theme} onClose={() => setInfoModule(null)} />
     </SafeAreaView>
   );
 }
+
+const Row = ({ label, val }) => (
+  <View style={s.pRow}><Text style={s.pLabel}>{label}</Text><Text style={s.pVal}>{val}</Text></View>
+);
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg },
@@ -187,4 +237,21 @@ const s = StyleSheet.create({
   linkText: { flex: 1, fontSize: 15, fontWeight: '600', color: COLORS.text },
   deleteBtn: { alignItems: 'center', paddingVertical: 18, marginTop: 10 },
   deleteText: { color: COLORS.danger, fontWeight: '700', fontSize: 15 },
+  sheetBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 36 },
+  sheetHandle: { width: 40, height: 5, borderRadius: 3, backgroundColor: COLORS.border, alignSelf: 'center', marginBottom: 14 },
+  sheetTitle: { fontSize: 22, fontWeight: '800', color: COLORS.text },
+  sheetSub: { fontSize: 14, color: COLORS.muted, marginTop: 4, marginBottom: 14, lineHeight: 20 },
+  pRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  pLabel: { fontSize: 15, color: COLORS.text },
+  pVal: { fontSize: 15, color: COLORS.text, fontWeight: '600' },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
+  totalLabel: { fontSize: 17, fontWeight: '800', color: COLORS.text },
+  totalVal: { fontSize: 24, fontWeight: '800' },
+  usageNote: { backgroundColor: '#F7F7FB', borderRadius: 12, padding: 14, marginTop: 6 },
+  usageTitle: { fontSize: 13, fontWeight: '700', color: COLORS.muted, marginBottom: 6 },
+  usageLine: { fontSize: 13, color: COLORS.text, lineHeight: 20 },
+  confirmBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, paddingVertical: 16, marginTop: 16 },
+  confirmText: { color: '#fff', fontWeight: '800', fontSize: 17 },
+  cancelText: { textAlign: 'center', color: COLORS.muted, fontWeight: '600', marginTop: 12, fontSize: 15 },
 });

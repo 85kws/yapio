@@ -61,6 +61,7 @@ export const createBusiness = (data) => api.post('/businesses', data).then((r) =
 export const getBusiness = (id) => api.get(`/businesses/${id}`).then((r) => r.data);
 export const updateBusiness = (id, data) => api.put(`/businesses/${id}`, data).then((r) => r.data.business);
 export const updateConfig = (id, data) => api.put(`/businesses/${id}/config`, data).then((r) => r.data.config);
+export const priceEstimate = (id) => api.get(`/businesses/${id}/price-estimate`).then((r) => r.data.estimate);
 export const publishBusiness = (id) => api.post(`/businesses/${id}/publish`).then((r) => r.data.business);
 export const deleteBusiness = (id) => api.delete(`/businesses/${id}`).then((r) => r.data);
 
