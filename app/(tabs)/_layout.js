@@ -17,7 +17,6 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="storefront" options={{ title: 'Vitrin', tabBarIcon: tabIcon('storefront-outline') }} />
       <Tabs.Screen name="my-apps" options={{ title: "App'lerim", tabBarIcon: tabIcon('apps-outline') }} />
-      <Tabs.Screen name="business" options={{ title: 'İşletmem', tabBarIcon: tabIcon('briefcase-outline') }} />
       <Tabs.Screen name="profile" options={{ title: 'Profil', tabBarIcon: tabIcon('person-outline') }} />
     </Tabs>
   );

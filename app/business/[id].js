@@ -50,7 +50,7 @@ export default function ManageBusiness() {
   const confirmDelete = () => {
     Alert.alert('Sil', `"${biz.name}" silinsin mi?`, [
       { text: 'Vazgeç', style: 'cancel' },
-      { text: 'Sil', style: 'destructive', onPress: async () => { await deleteBusiness(id); router.replace('/(tabs)/business'); } },
+      { text: 'Sil', style: 'destructive', onPress: async () => { await deleteBusiness(id); router.replace('/my-businesses'); } },
     ]);
   };
 

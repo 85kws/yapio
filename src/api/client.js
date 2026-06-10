@@ -48,6 +48,13 @@ export const getInstalls = () => api.get('/installs').then((r) => r.data.apps);
 export const install = (businessId) => api.post(`/installs/${businessId}`).then((r) => r.data);
 export const uninstall = (businessId) => api.delete(`/installs/${businessId}`).then((r) => r.data);
 
+// ---- Satıcı başvurusu ----
+export const sellerApply = (data) => api.post('/seller/apply', data).then((r) => r.data.user);
+export const sellerStatus = () => api.get('/seller/status').then((r) => r.data.user);
+export const adminPending = () => api.get('/seller/admin/pending').then((r) => r.data.applications);
+export const adminApprove = (id) => api.post(`/seller/admin/${id}/approve`).then((r) => r.data.user);
+export const adminReject = (id, reason) => api.post(`/seller/admin/${id}/reject`, { reason }).then((r) => r.data.user);
+
 // ---- İşletme (dev) ----
 export const myBusinesses = () => api.get('/businesses/mine').then((r) => r.data.businesses);
 export const createBusiness = (data) => api.post('/businesses', data).then((r) => r.data.business);
