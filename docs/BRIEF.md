@@ -7,7 +7,14 @@
 
 ## 0. GÜNCEL DURUM (en son — buradan oku)
 
-### EN SON tur — ödeme kaldırma + tema/arka plan + kişiye özel program/ölçüm + yeni şablonlar + tier kararı (commit a616017, e22c4e2 — BUILD ALINMADI)
+### EN SON tur — NATIVE: adım sayar (pedometer) + push bildirimler (commit ea723af, build 11 → TestFlight)
+- **Adım Sayar modülü (YENİ, gerçek pedometer):** `expo-sensors` Pedometer ile telefonun saydığı GERÇEK günlük adım. Customer (`src/modules/customer/Steps.js`): adım + hedef bar + km/kcal. Manage: günlük hedef. **Tracker'dan adım çıkarıldı** (artık sadece su/kalori). registry/MODULE_INFO(steps)/icons(walk) eklendi.
+- **Push bildirim sistemi (expo-notifications):** `src/notifications/setup.js` — izin + Expo push token kaydı (`/api/push/register` → push_tokens), su + randevu yerel hatırlatıcı. `(tabs)/_layout`'ta init+register. Booking randevu alınca yerel hatırlatıcı.
+- **Backend push** (`src/lib/push.js` Expo send + businessAdmins; DEPLOY EDİLDİ) — tetikleyiciler: katılım isteği→adminler, mesaj→karşı taraf, yeni randevu→adminler, program/ölçüm atandı→müşteri, üyelik onay→müşteri, randevu durumu→müşteri.
+- Deps: expo-sensors/notifications/device. app.json: notifications plugin + NSMotionUsageDescription. EAS APNs anahtarını otomatik kurar.
+- **Kalan tek faz:** IAP paketler (Dev/Dev+/Pro, [[yapp-pricing-tiers]]) — RevenueCat + ASC ürün + paywall + tier kilidi.
+
+### Önceki tur — ödeme kaldırma + tema/arka plan + kişiye özel program/ölçüm + yeni şablonlar + tier kararı (commit a616017, e22c4e2)
 - **Ödeme komple kaldırıldı:** platform ücreti/fiyat modalı/ödeme-rehberi yok, publish bedava, payments modülü picker'dan + müşteri sekmelerinden gizli. **Ekip (staff) müşteriye gizli.** Mini app ana sayfadan adres/tel kalktı.
 - **Tema & Arka Plan editörü** (`app/business/[id].js` + YENİ `src/components/AppBackground.js`): 10 tema rengi + arka plan Düz/Desen(baloncuk/halka/nokta)/Özel foto → `theme_json`. Desen/foto Dev+/Pro'da olacak.
 - **Kişiye özel program (plans):** mini admin müşteri seçer → başlık+bölümler program atar (`createEntryFor` user_id). Müşteri kendine atananı akordeon görür.
