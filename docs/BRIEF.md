@@ -7,7 +7,16 @@
 
 ## 0. GÜNCEL DURUM (en son — buradan oku)
 
-### EN SON tur — Yapio + gerçek-app mini app + şifreli auth + dev admin (commit 4e80120, build 9 → TestFlight auto-submit)
+### EN SON tur — dev admin denetim + mini-admin hesap açma + kayıt sistemi + kılavuz (commit 33546f4, build 10 → TestFlight)
+- **Dev super-admin sayfası zenginleşti** (`/yapp/admin`, ADMIN_KEY): "Sahipler & Mini App'ler" + "Tüm Kullanıcılar" sekmeleri. Her kullanıcı: provider (Apple/Google/E-posta/mini-admin açtı), cihaz platformu (ios/android), kayıt tarihi, üyelik sayısı, ban durumu. Her mini app: **kim kullanıyor** (üyeler+username+platform), indirme/içerik/kayıt sayıları. **Sohbet okuma**: messaging mesajları işletme başına okunur (yasa dışı içerik denetimi). Başvuru onay/red, app askıya/aktif, kullanıcı ban/unban — hepsi key ile.
+- **Platform/provider yakalama:** `app_users.provider/platform/created_by_business` kolonları eklendi; auth (register/login/business-login/apple/google) `platform`=Platform.OS alır.
+- **Mini-admin hesap açma (kayıt sistemi):** mini admin "Kullanıcılar" ekranından danışan/çalışan için **kullanıcı adı + şifre** hesabı açar (`POST /businesses/:id/members/create` → global `local:username` hesap + aktif `business_members`). Kişiye bilgiler verilir, normal "Giriş"le girer. App "Özel (kayıt sistemi)" ise sadece üyeler kullanır. (`app/members/[id].js` + `business.routes.js` + `client.createMember`)
+- **Mini admin KILAVUZU (YENİ `app/guide.js`):** akordeon — Yapio/mini admin nedir, kurulum, ana sayfa editörü, 16 modül (MODULE_INFO'dan otomatik), kayıt sistemi & hesap açma (Ali örneği), booking, yayın/ücret, ödeme ayarları, güvenlik/sorumluluk. `business/[id].js`'e "Kılavuz" linki.
+- Backend prod'a scp+init-db+restart deploy edildi, smoke-test geçti (platform yakalandı, business-login 401, member-create korumalı, admin /data 200).
+- ⚠️ build 9 (önceki tur, Yapio) zaten TestFlight'a auto-submit oldu; build 10 onu geçer.
+- **Hâlâ kalan:** #1 gerçek **pedometer** (expo-sensors + dev build).
+
+### Önceki tur — Yapio + gerçek-app mini app + şifreli auth + dev admin (commit 4e80120, build 9 → TestFlight auto-submit)
 - **Ad: yapp → Yapio.** "yapp" App Store'da alınmış (ASC otomatik "yapp (80c152)" yapmıştı) → ASC display adı + app.json name **Yapio**. Bundle `com.yapp.builder` aynı. ASC, CaloriDay ASC API key (QJT4TH5633) ile yönetildi.
 - **Mini app runtime (`app/run/[slug].js`):** üst logo/ad/özet başlığı KALDIRILDI; alt **yatay kaydırılabilir özellik menüsü** (tab bar) — ilk sekme Ana Sayfa (landing), sonra her açık modül. Ekranın HER yerinden **yatay swipe + slide animasyon** (Animated + PanResponder) ile geçiş. Gerçek app hissi.
 - **Booking (`src/modules/customer/Booking.js`):** uçak-bileti **takvim** — 28 günlük ay-grid (Pzt-başı), dolu/geçmiş gün soluk+kapalı, boş gün açık (müsaitlik gün-başına paralel `bookingSlots` ile çekilir), ilk boş gün otomatik seçili.
