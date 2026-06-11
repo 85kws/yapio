@@ -7,7 +7,18 @@
 
 ## 0. GÜNCEL DURUM (en son — buradan oku)
 
-### En son tur — G1–G6 (commit 350782d, TestFlight build 8)
+### EN SON tur — Yapio + gerçek-app mini app + şifreli auth + dev admin (commit 4e80120, build 9 → TestFlight auto-submit)
+- **Ad: yapp → Yapio.** "yapp" App Store'da alınmış (ASC otomatik "yapp (80c152)" yapmıştı) → ASC display adı + app.json name **Yapio**. Bundle `com.yapp.builder` aynı. ASC, CaloriDay ASC API key (QJT4TH5633) ile yönetildi.
+- **Mini app runtime (`app/run/[slug].js`):** üst logo/ad/özet başlığı KALDIRILDI; alt **yatay kaydırılabilir özellik menüsü** (tab bar) — ilk sekme Ana Sayfa (landing), sonra her açık modül. Ekranın HER yerinden **yatay swipe + slide animasyon** (Animated + PanResponder) ile geçiş. Gerçek app hissi.
+- **Booking (`src/modules/customer/Booking.js`):** uçak-bileti **takvim** — 28 günlük ay-grid (Pzt-başı), dolu/geçmiş gün soluk+kapalı, boş gün açık (müsaitlik gün-başına paralel `bookingSlots` ile çekilir), ilk boş gün otomatik seçili.
+- **Mini app ANA SAYFA editörü (YENİ `app/manage/[id]/home.js`):** `landing_blocks` elle düzenle — metin/görsel/buton blok ekle/sil/sırala/içerik; görsel `_assets` pseudo-modüle `uploadModuleImage` ile. `business/[id].js`'e "Ana Sayfayı Düzenle" linki.
+- **Auth GÜVENLİK reworku:** Gerçek **isim+şifre kayıt/giriş** (Node scrypt; `app_users.password_hash` + `local_sub` kolonları). Login'de "Zaten hesabın var mı?" giriş/kayıt geçişi. **/auth/dev KALDIRILDI**, **orion süper-admin backdoor KALDIRILDI**. Frontend `loginDev`/`authDev` temizlendi. (DEV_LOGIN artık anlamsız — endpoint yok.)
+- **DEV SÜPER-ADMIN sunucu sayfası (YENİ `src/routes/admin.routes.js`):** app'ten BAĞIMSIZ, JWT yok. `https://167-233-44-62.sslip.io/yapp/admin`, sadece **ADMIN_KEY** (prod `.env`) ile açılır. Tüm sahipler + işletmeleri + içerik/kayıt sayıları, başvuru onay/red, işletme askıya/aktif, kullanıcı ban/unban. (#3 "süper admin her sahibin verisini ayrı görsün" burada karşılandı.)
+- **app.json:** kullanılmayan `RECORD_AUDIO` izni silindi.
+- Backend prod'a deploy edildi (scp + `npm run init-db` migration + `pm2 restart yapp`). Smoke-test geçti (register/login 200, /auth/dev 404, orion 401).
+- **Kalan iş:** #1 gerçek **pedometer** (expo-sensors + dev build; FormLab `app/(client)/steps.js` reuse) — YAPILMADI.
+
+### Önceki tur — G1–G6 (commit 350782d, TestFlight build 8)
 - **Giriş:** isim + **şifre**. ScrollView + autofocus yok → terms onay kutusu erişilebilir, klavye kapanabilir.
 - **Süper admin:** isim `orion` / şifre `1234` (rezerve; yanlış şifre = 401). is_admin + is_super verir. Eski "admin" backdoor kaldırıldı.
   Süper admin: `app/admin/sellers.js` (başvuru onay/red) + `app/admin/businesses.js` (işletme askıya al/aktifleştir) + kullanıcı ban.

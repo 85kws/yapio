@@ -1,6 +1,7 @@
 // yapp backend API istemcisi (axios) + token yönetimi (secure-store).
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 // Prod backend (Hetzner, nginx /yapp/ → localhost:4000, HTTPS).
 export const API_BASE = 'https://167-233-44-62.sslip.io/yapp';
@@ -28,8 +29,8 @@ api.interceptors.request.use(async (config) => {
 });
 
 // ---- Auth ----
-export const authLogin = (name, password) => api.post('/auth/login', { name, password }).then((r) => r.data);
-export const authRegister = (name, password, email) => api.post('/auth/register', { name, password, email }).then((r) => r.data);
+export const authLogin = (name, password) => api.post('/auth/login', { name, password, platform: Platform.OS }).then((r) => r.data);
+export const authRegister = (name, password, email) => api.post('/auth/register', { name, password, email, platform: Platform.OS }).then((r) => r.data);
 export const authApple = (identityToken, name) => api.post('/auth/apple', { identityToken, name }).then((r) => r.data);
 export const authGoogle = (idToken) => api.post('/auth/google', { idToken }).then((r) => r.data);
 export const getMe = () => api.get('/auth/me').then((r) => r.data.user);
@@ -63,6 +64,7 @@ export const adminUserAction = (id, action) => api.post(`/seller/admin/users/${i
 export const getMembers = (bid) => api.get(`/businesses/${bid}/members`).then((r) => r.data.members);
 export const joinBusiness = (bid, code) => api.post(`/businesses/${bid}/join`, { code }).then((r) => r.data.status);
 export const memberAction = (bid, userId, action) => api.post(`/businesses/${bid}/members/${userId}/${action}`).then((r) => r.data);
+export const createMember = (bid, username, password, display_name) => api.post(`/businesses/${bid}/members/create`, { username, password, display_name }).then((r) => r.data.member);
 export const uploadLogo = (bid, uri) => {
   const name = uri.split('/').pop() || 'logo.jpg';
   const ext = (name.split('.').pop() || 'jpg').toLowerCase();

@@ -130,7 +130,7 @@ export default function ManageBusiness() {
         <Text style={s.sectionTitle}>Erişim</Text>
         <Text style={s.sectionSub}>Herkese açık mı, yoksa sadece onayladığın üyeler mi kullanabilsin?</Text>
         <View style={s.segment}>
-          {[['public', 'Herkese Açık'], ['private', 'Özel (üyelik)']].map(([v, l]) => (
+          {[['public', 'Herkese Açık'], ['private', 'Özel (kayıt sistemi)']].map(([v, l]) => (
             <TouchableOpacity key={v} style={[s.segItem, (biz.access_mode || 'public') === v && { backgroundColor: theme }]} onPress={() => setAccess(v)}>
               <Text style={[s.segText, (biz.access_mode || 'public') === v && { color: '#fff' }]}>{l}</Text>
             </TouchableOpacity>
@@ -144,7 +144,7 @@ export default function ManageBusiness() {
             </View>
             <TouchableOpacity style={[s.membersBtn, { borderColor: theme }]} onPress={() => router.push(`/members/${id}`)}>
               <Ionicons name="people" size={16} color={theme} />
-              <Text style={[s.membersText, { color: theme }]}>Üyeler</Text>
+              <Text style={[s.membersText, { color: theme }]}>Kullanıcılar</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -195,6 +195,12 @@ export default function ManageBusiness() {
             </View>
           ))}
         </View>
+
+        <TouchableOpacity style={s.linkRow} onPress={() => router.push(`/guide`)}>
+          <Ionicons name="help-buoy-outline" size={20} color={theme} />
+          <Text style={s.linkText}>Kılavuz · Nasıl kullanılır?</Text>
+          <Ionicons name="chevron-forward" size={22} color={COLORS.muted} />
+        </TouchableOpacity>
 
         <TouchableOpacity style={s.linkRow} onPress={() => router.push(`/manage/${id}/home`)}>
           <Ionicons name="create-outline" size={20} color={theme} />
