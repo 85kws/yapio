@@ -5,13 +5,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { getBusiness, updateConfig, publishBusiness, deleteBusiness, uploadBusinessImage, deleteBusinessImage, mediaUrl, priceEstimate, updateBusiness, uploadLogo } from '../../src/api/client';
+import { getBusiness, updateConfig, publishBusiness, deleteBusiness, uploadBusinessImage, deleteBusinessImage, mediaUrl, updateBusiness, uploadLogo, uploadModuleImage } from '../../src/api/client';
 import { COLORS, SIZES } from '../../src/theme';
 import { AppIcon, moduleIcon } from '../../src/icons';
 import { MODULE_INFO } from '../../src/modules';
 import ModuleInfoModal from '../../src/components/ModuleInfoModal';
 
-const ALL_MODULES = Object.keys(MODULE_INFO);
+const ALL_MODULES = Object.keys(MODULE_INFO).filter((k) => k !== 'payments');
+const THEME_COLORS = ['#5B4BE7', '#E93D82', '#30A46C', '#0091FF', '#F76808', '#8B6914', '#1A1A2E', '#C4A35A', '#E5484D', '#4334C4'];
+const BG_COLORS = ['#FFFFFF', '#FAF7F2', '#F1F1F7', '#FDF2F8', '#F0FDF4', '#EFF6FF', '#FFF7ED', '#15151F'];
 
 export default function ManageBusiness() {
   const router = useRouter();
@@ -22,8 +24,8 @@ export default function ManageBusiness() {
   const [infoModule, setInfoModule] = useState(null);
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
-  const [priceModal, setPriceModal] = useState(false);
-  const [price, setPrice] = useState(null);
+  const [bgUploading, setBgUploading] = useState(false);
+  const [themeJson, setThemeJson] = useState({});
   const [name, setName] = useState('');
 
   const load = useCallback(async () => {
@@ -32,6 +34,7 @@ export default function ManageBusiness() {
       setData(d);
       setEnabled(d.config?.modules_enabled || []);
       setImages(d.business?.promo_images || []);
+      setThemeJson(d.business?.theme_json || {});
       setName(d.business?.name || '');
     } catch (e) { console.warn('getBusiness', e?.message); }
   }, [id]);
@@ -64,6 +67,22 @@ export default function ManageBusiness() {
     const b = await updateBusiness(id, { access_mode: mode });
     setData((d) => ({ ...d, business: { ...d.business, access_mode: b.access_mode, join_code: b.join_code } }));
   };
+  const saveTheme = async (patch) => {
+    const next = { ...themeJson, ...patch };
+    setThemeJson(next);
+    setData((d) => ({ ...d, business: { ...d.business, theme_json: next } }));
+    try { await updateBusiness(id, { theme_json: next }); } catch { Alert.alert('Hata', 'Kaydedilemedi'); }
+  };
+  const pickBgPhoto = async () => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) return Alert.alert('İzin gerekli', 'Galeriye erişim izni verin.');
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
+    if (res.canceled || !res.assets?.[0]) return;
+    setBgUploading(true);
+    try { const item = await uploadModuleImage(id, '_assets', res.assets[0].uri); saveTheme({ bg_type: 'photo', bg_photo: item?.data?.url || item?.url }); }
+    catch { Alert.alert('Hata', 'Görsel yüklenemedi'); }
+    finally { setBgUploading(false); }
+  };
 
   if (!data) return <SafeAreaView style={s.safe}><ActivityIndicator style={{ marginTop: 60 }} color={COLORS.primary} /></SafeAreaView>;
 
@@ -78,15 +97,10 @@ export default function ManageBusiness() {
     finally { setSaving(false); }
   };
 
-  const openPublish = async () => {
-    try { setPrice(await priceEstimate(id)); setPriceModal(true); }
-    catch (e) { Alert.alert('Hata', 'Fiyat hesaplanamadı'); }
-  };
-  const confirmPublish = async () => {
+  const doPublish = async () => {
     try {
       const b = await publishBusiness(id);
       setData({ ...data, business: b });
-      setPriceModal(false);
       Alert.alert('Yayında!', 'App vitrinde görünüyor artık.');
     } catch (e) { Alert.alert('Hata', e?.message || 'Yayınlanamadı'); }
   };
@@ -127,6 +141,47 @@ export default function ManageBusiness() {
           </View>
         </View>
 
+        <Text style={s.sectionTitle}>Tema & Arka Plan</Text>
+        <Text style={s.sectionSub}>Uygulamanın rengi ve arka planı.</Text>
+        <Text style={s.miniLabel}>Tema rengi</Text>
+        <View style={s.swatchRow}>
+          {THEME_COLORS.map((c) => (
+            <TouchableOpacity key={c} style={[s.swatch, { backgroundColor: c }, (themeJson.color || theme) === c && s.swatchOn]} onPress={() => saveTheme({ color: c })}>
+              {(themeJson.color || theme) === c ? <Ionicons name="checkmark" size={16} color="#fff" /> : null}
+            </TouchableOpacity>
+          ))}
+        </View>
+        <Text style={s.miniLabel}>Arka plan</Text>
+        <View style={s.segment}>
+          {[['solid', 'Düz Renk'], ['pattern', 'Desen'], ['photo', 'Foto']].map(([v, l]) => (
+            <TouchableOpacity key={v} style={[s.segItem, (themeJson.bg_type || 'solid') === v && { backgroundColor: theme }]} onPress={() => saveTheme({ bg_type: v })}>
+              <Text style={[s.segText, (themeJson.bg_type || 'solid') === v && { color: '#fff' }]}>{l}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        {(themeJson.bg_type === 'pattern') ? (
+          <View style={s.chipRow}>
+            {[['bubbles', 'Baloncuk'], ['rings', 'Halka'], ['dots', 'Nokta']].map(([v, l]) => (
+              <TouchableOpacity key={v} style={[s.chip, (themeJson.bg_pattern || 'bubbles') === v && { backgroundColor: theme, borderColor: theme }]} onPress={() => saveTheme({ bg_pattern: v })}>
+                <Text style={[s.chipText, (themeJson.bg_pattern || 'bubbles') === v && { color: '#fff' }]}>{l}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : themeJson.bg_type === 'photo' ? (
+          <TouchableOpacity style={[s.bgPhotoBtn, { borderColor: theme }]} onPress={pickBgPhoto} disabled={bgUploading}>
+            {bgUploading ? <ActivityIndicator color={theme} /> : <><Ionicons name="image" size={18} color={theme} /><Text style={[s.bgPhotoText, { color: theme }]}>{themeJson.bg_photo ? 'Fotoğrafı Değiştir' : 'Arka Plan Fotoğrafı Seç'}</Text></>}
+          </TouchableOpacity>
+        ) : (
+          <View style={s.swatchRow}>
+            {BG_COLORS.map((c) => (
+              <TouchableOpacity key={c} style={[s.swatch, { backgroundColor: c, borderWidth: 1, borderColor: COLORS.border }, (themeJson.bg_color || '#FFFFFF') === c && s.swatchOn]} onPress={() => saveTheme({ bg_color: c })}>
+                {(themeJson.bg_color || '#FFFFFF') === c ? <Ionicons name="checkmark" size={16} color={theme} /> : null}
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+        <Text style={s.bgNote}>Desen ve foto arka plan, Dev+ ve Pro pakette aktif olur.</Text>
+
         <Text style={s.sectionTitle}>Erişim</Text>
         <Text style={s.sectionSub}>Herkese açık mı, yoksa sadece onayladığın üyeler mi kullanabilsin?</Text>
         <View style={s.segment}>
@@ -150,7 +205,7 @@ export default function ManageBusiness() {
         )}
 
         {biz.status !== 'active' && (
-          <TouchableOpacity style={[s.publishBtn, { backgroundColor: theme }]} onPress={openPublish}>
+          <TouchableOpacity style={[s.publishBtn, { backgroundColor: theme }]} onPress={doPublish}>
             <Ionicons name="rocket" size={18} color="#fff" />
             <Text style={s.publishText}>Yayınla</Text>
           </TouchableOpacity>
@@ -208,52 +263,10 @@ export default function ManageBusiness() {
           <Ionicons name="chevron-forward" size={22} color={COLORS.muted} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={s.linkRow} onPress={() => router.push(`/payment-guide`)}>
-          <Ionicons name="card-outline" size={20} color={theme} />
-          <Text style={s.linkText}>Ödeme Ayarları (iyzico/Stripe bağla)</Text>
-          <Ionicons name="chevron-forward" size={22} color={COLORS.muted} />
-        </TouchableOpacity>
-
         <TouchableOpacity style={s.deleteBtn} onPress={confirmDelete}>
           <Text style={s.deleteText}>İşletmeyi Sil</Text>
         </TouchableOpacity>
       </ScrollView>
-
-      {/* Yayınla — fiyat onayı */}
-      <Modal visible={priceModal} transparent animationType="slide" onRequestClose={() => setPriceModal(false)}>
-        <View style={s.sheetBg}>
-          <View style={s.sheet}>
-            <View style={s.sheetHandle} />
-            <Text style={s.sheetTitle}>Yayınlamadan önce</Text>
-            <Text style={s.sheetSub}>Tahmini aylık ücret. Abonelik değil — yalnızca kullandığın kadar ödersin.</Text>
-
-            {price && (
-              <ScrollView style={{ maxHeight: 320 }}>
-                <Row label="Platform tabanı" val={`${price.platform_base} ₺`} />
-                {price.modules.filter((m) => m.cost > 0).map((m) => (
-                  <Row key={m.key} label={MODULE_INFO[m.key]?.label || m.key} val={`${m.cost} ₺`} />
-                ))}
-                <View style={s.totalRow}>
-                  <Text style={s.totalLabel}>Tahmini / ay</Text>
-                  <Text style={[s.totalVal, { color: theme }]}>~{price.monthly} ₺</Text>
-                </View>
-                <View style={s.usageNote}>
-                  <Text style={s.usageTitle}>Kullanıma göre eklenir:</Text>
-                  <Text style={s.usageLine}>• İlk {price.rates.mau_free} aktif müşteri ücretsiz, sonrası {price.rates.mau_each} ₺/müşteri</Text>
-                  <Text style={s.usageLine}>• Bildirim: {price.rates.push_per_1000} ₺ / 1000 adet</Text>
-                  <Text style={s.usageLine}>• Medya: {price.rates.media_per_gb} ₺ / GB</Text>
-                </View>
-              </ScrollView>
-            )}
-
-            <TouchableOpacity style={[s.confirmBtn, { backgroundColor: theme }]} onPress={confirmPublish}>
-              <Ionicons name="rocket" size={18} color="#fff" />
-              <Text style={s.confirmText}>Onayla ve Yayınla</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setPriceModal(false)}><Text style={s.cancelText}>Vazgeç</Text></TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
       <ModuleInfoModal moduleKey={infoModule} theme={theme} onClose={() => setInfoModule(null)} />
     </SafeAreaView>
@@ -278,6 +291,16 @@ const s = StyleSheet.create({
   segment: { flexDirection: 'row', backgroundColor: '#ECECF4', borderRadius: 12, padding: 4 },
   segItem: { flex: 1, paddingVertical: 11, borderRadius: 9, alignItems: 'center' },
   segText: { fontWeight: '700', color: COLORS.muted },
+  miniLabel: { fontSize: 13, fontWeight: '700', color: COLORS.muted, marginTop: 14, marginBottom: 8 },
+  swatchRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  swatch: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  swatchOn: { borderWidth: 3, borderColor: '#fff', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 3, elevation: 3 },
+  chipRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  chip: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10, borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: '#fff' },
+  chipText: { fontWeight: '700', color: COLORS.text, fontSize: 13 },
+  bgPhotoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1.5, borderRadius: 12, paddingVertical: 13, marginTop: 10 },
+  bgPhotoText: { fontWeight: '700' },
+  bgNote: { fontSize: 12, color: COLORS.muted, marginTop: 8 },
   accessBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 14, marginTop: 10 },
   accessLabel: { fontSize: 12, color: COLORS.muted, fontWeight: '600' },
   accessCode: { fontSize: 22, fontWeight: '900', letterSpacing: 2, marginTop: 2 },

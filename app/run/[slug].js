@@ -13,6 +13,7 @@ import { moduleIcon, AppIcon } from '../../src/icons';
 import { MODULE_INFO } from '../../src/modules';
 import { CUSTOMER } from '../../src/modules/registry';
 import BlockRenderer from '../../src/blocks/BlockRenderer';
+import AppBackground from '../../src/components/AppBackground';
 
 const SCREEN_W = Dimensions.get('window').width;
 
@@ -104,15 +105,17 @@ export default function RunApp() {
   }
 
   const ActiveView = tab !== '__home' ? CUSTOMER[tab] : null;
+  // Müşteriye gösterilmeyen modüller: ekip (sadece yönetim) + ödeme (kaldırıldı)
+  const HIDDEN = ['staff', 'payments'];
   const tabs = [
     { key: '__home', label: 'Ana Sayfa', icon: 'home' },
-    ...modules.filter((m) => MODULE_INFO[m]).map((m) => ({ key: m, label: MODULE_INFO[m].label, icon: moduleIcon(m) })),
+    ...modules.filter((m) => MODULE_INFO[m] && !HIDDEN.includes(m)).map((m) => ({ key: m, label: MODULE_INFO[m].label, icon: moduleIcon(m) })),
   ];
   tabsRef.current = tabs;
   const curIdx = tabs.findIndex((t) => t.key === tab);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <AppBackground theme={biz.theme_json}>
       <StatusBar style="dark" />
 
       {/* GÖVDE — üst başlık yok; her yerden yatay kaydır ile geçiş, slide animasyonlu */}
@@ -123,8 +126,6 @@ export default function RunApp() {
               {landing.map((b, i) => (
                 <BlockRenderer key={i} block={b} theme={theme} onNavigate={onNavigate} />
               ))}
-              {biz.address ? <View style={s.metaRow}><Ionicons name="location-outline" size={16} color={COLORS.muted} /><Text style={s.meta}>{biz.address}</Text></View> : null}
-              {biz.phone ? <View style={s.metaRow}><Ionicons name="call-outline" size={16} color={COLORS.muted} /><Text style={s.meta}>{biz.phone}</Text></View> : null}
               <View style={{ height: 20 }} />
             </ScrollView>
           ) : ActiveView ? (
@@ -163,7 +164,7 @@ export default function RunApp() {
           </ScrollView>
         </SafeAreaView>
       </View>
-    </View>
+    </AppBackground>
   );
 }
 

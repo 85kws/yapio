@@ -12,6 +12,7 @@ export const SECTOR_ICON = {
   restoran: 'restaurant', kafe: 'cafe', spor: 'barbell', pilates: 'body',
   ozel_ders: 'school', muzik: 'musical-notes', dovme: 'color-palette', veteriner: 'paw',
   oto: 'car-sport', fizyo: 'medkit', fotografci: 'camera',
+  petshop: 'basket', eczane: 'medical', dogum: 'female', dis: 'happy', psikolog: 'heart', kresh: 'balloon',
 };
 
 // Modül anahtarı → Ionicons adı
