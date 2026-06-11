@@ -16,6 +16,8 @@ import PlansCustomer from './customer/Plans';
 import PlansManage from './manage/Plans';
 import TrackerCustomer from './customer/Tracker';
 import TrackerManage from './manage/Tracker';
+import StepsCustomer from './customer/Steps';
+import StepsManage from './manage/Steps';
 import SubscriptionsCustomer from './customer/Subscriptions';
 import SubscriptionsManage from './manage/Subscriptions';
 import MessagingCustomer from './customer/Messaging';
@@ -36,7 +38,7 @@ import PushManage from './manage/Push';
 export const CUSTOMER = {
   booking: BookingCustomer, catalog: CatalogCustomer, ordering: OrderingCustomer,
   campaigns: CampaignsCustomer, loyalty: LoyaltyCustomer, records: RecordsCustomer,
-  plans: PlansCustomer, tracker: TrackerCustomer, subscriptions: SubscriptionsCustomer,
+  plans: PlansCustomer, tracker: TrackerCustomer, steps: StepsCustomer, subscriptions: SubscriptionsCustomer,
   messaging: MessagingCustomer, reviews: ReviewsCustomer, gallery: GalleryCustomer,
   profile: ProfileCustomer, staff: StaffCustomer, payments: PaymentsCustomer, push: PushCustomer,
 };
@@ -44,7 +46,7 @@ export const CUSTOMER = {
 export const MANAGE = {
   booking: BookingManage, catalog: CatalogManage, ordering: OrderingManage,
   campaigns: CampaignsManage, loyalty: LoyaltyManage, records: RecordsManage,
-  plans: PlansManage, tracker: TrackerManage, subscriptions: SubscriptionsManage,
+  plans: PlansManage, tracker: TrackerManage, steps: StepsManage, subscriptions: SubscriptionsManage,
   messaging: MessagingManage, reviews: ReviewsManage, gallery: GalleryManage,
   profile: ProfileManage, staff: StaffManage, payments: PaymentsManage, push: PushManage,
 };

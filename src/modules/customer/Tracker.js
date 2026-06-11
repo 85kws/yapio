@@ -1,4 +1,4 @@
-// Müşteri takip: günlük adım/su/kalori gir, geçmişi gör.
+// Müşteri takip: günlük su/kalori gir, geçmişi gör. (Adım için ayrı "Adım Sayar" modülü var.)
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +8,7 @@ import { COLORS } from '../../theme';
 export default function Tracker({ businessId, theme }) {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [f, setF] = useState({ steps: '', water: '', calorie: '' });
+  const [f, setF] = useState({ water: '', calorie: '' });
 
   const load = useCallback(async () => {
     try { setList((await getEntries(businessId, 'tracker')).entries || []); } finally { setLoading(false); }
@@ -16,9 +16,9 @@ export default function Tracker({ businessId, theme }) {
   useEffect(() => { load(); }, [load]);
 
   const add = async () => {
-    if (!f.steps && !f.water && !f.calorie) return;
-    await createEntry(businessId, 'tracker', { date: new Date().toISOString().slice(0, 10), steps: Number(f.steps) || 0, water: Number(f.water) || 0, calorie: Number(f.calorie) || 0 });
-    setF({ steps: '', water: '', calorie: '' }); load();
+    if (!f.water && !f.calorie) return;
+    await createEntry(businessId, 'tracker', { date: new Date().toISOString().slice(0, 10), water: Number(f.water) || 0, calorie: Number(f.calorie) || 0 });
+    setF({ water: '', calorie: '' }); load();
   };
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
@@ -31,14 +31,12 @@ export default function Tracker({ businessId, theme }) {
     <ScrollView contentContainerStyle={s.wrap}>
       <Text style={s.h}>Bugün</Text>
       <View style={s.stats}>
-        <Stat icon="footsteps" label="Adım" val={sum('steps')} theme={theme} />
         <Stat icon="water" label="Su (ml)" val={sum('water')} theme={theme} />
         <Stat icon="flame" label="Kalori" val={sum('calorie')} theme={theme} />
       </View>
 
       <Text style={s.h}>Kayıt ekle</Text>
       <View style={{ flexDirection: 'row', gap: 8 }}>
-        <Inp v={f.steps} on={(v) => setF({ ...f, steps: v })} ph="Adım" />
         <Inp v={f.water} on={(v) => setF({ ...f, water: v })} ph="Su ml" />
         <Inp v={f.calorie} on={(v) => setF({ ...f, calorie: v })} ph="Kalori" />
       </View>
@@ -48,7 +46,7 @@ export default function Tracker({ businessId, theme }) {
       {list.slice(0, 14).map((e) => (
         <View key={e.id} style={s.row}>
           <Text style={s.date}>{e.data.date}</Text>
-          <Text style={s.vals}>{e.data.steps || 0} adım · {e.data.water || 0} ml · {e.data.calorie || 0} kcal</Text>
+          <Text style={s.vals}>{e.data.water || 0} ml · {e.data.calorie || 0} kcal</Text>
         </View>
       ))}
       <View style={{ height: 30 }} />

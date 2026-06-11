@@ -48,9 +48,14 @@ export const MODULE_INFO = {
     detail: 'Müşteriye özel yapılandırılmış program hazırlarsınız: diyet listesi (öğün öğün), antrenman planı, tedavi programı. Müşteri programını telefonundan takip eder.',
   },
   tracker: {
-    label: 'Takip',
-    short: 'Adım, kalori, su takibi.',
-    detail: 'Müşteri günlük adım, kalori ve su tüketimini takip eder (telefon sensörü + elle giriş). Hedef belirlenir, ilerleme grafikle gösterilir. Spor ve diyet için ideal.',
+    label: 'Su & Kalori',
+    short: 'Günlük su ve kalori takibi.',
+    detail: 'Müşteri günlük su ve kalori tüketimini elle girip takip eder. Hedef belirlenir, bugünkü toplam ve geçmiş gösterilir. Adım sayımı için ayrı "Adım Sayar" modülü vardır.',
+  },
+  steps: {
+    label: 'Adım Sayar',
+    short: 'Telefonun saydığı gerçek günlük adım.',
+    detail: 'Müşterinin günlük adımı telefonun hareket sensöründen OTOMATİK sayılır (elle giriş yok). Hedefe göre ilerleme, tahmini km ve yakılan kalori gösterilir. Siz sadece günlük adım hedefini belirlersiniz. Spor, diyet ve sağlık için ideal.',
   },
   messaging: {
     label: 'Mesaj',

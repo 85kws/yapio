@@ -19,7 +19,7 @@ export const SECTOR_ICON = {
 export const MODULE_ICON = {
   booking: 'calendar', catalog: 'book', ordering: 'cart', campaigns: 'megaphone',
   loyalty: 'star', subscriptions: 'pricetags', payments: 'card', records: 'document-text',
-  plans: 'clipboard', tracker: 'footsteps', messaging: 'chatbubbles', push: 'notifications',
+  plans: 'clipboard', tracker: 'water', steps: 'walk', messaging: 'chatbubbles', push: 'notifications',
   gallery: 'images', profile: 'location', reviews: 'chatbox-ellipses', staff: 'people',
 };
 

@@ -17,7 +17,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.yapp.builder",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSMotionUsageDescription": "Adım sayar özelliği için hareket verisi kullanılır."
       }
     },
     "android": {
@@ -41,7 +42,13 @@
           "photosPermission": "yapp ile app'inize foto eklemek icin galeriye erisim ister."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "color": "#5B4BE7"
+        }
+      ]
     ],
     "extra": {
       "router": {},

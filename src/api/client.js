@@ -65,6 +65,7 @@ export const getMembers = (bid) => api.get(`/businesses/${bid}/members`).then((r
 export const joinBusiness = (bid, code) => api.post(`/businesses/${bid}/join`, { code }).then((r) => r.data.status);
 export const memberAction = (bid, userId, action) => api.post(`/businesses/${bid}/members/${userId}/${action}`).then((r) => r.data);
 export const createMember = (bid, username, password, display_name) => api.post(`/businesses/${bid}/members/create`, { username, password, display_name }).then((r) => r.data.member);
+export const registerPush = (token) => api.post('/push/register', { token, platform: Platform.OS }).then((r) => r.data);
 export const uploadLogo = (bid, uri) => {
   const name = uri.split('/').pop() || 'logo.jpg';
   const ext = (name.split('.').pop() || 'jpg').toLowerCase();

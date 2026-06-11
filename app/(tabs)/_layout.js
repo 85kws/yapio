@@ -1,10 +1,13 @@
+import { useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../src/theme';
+import { initNotifications, registerForPush } from '../../src/notifications/setup';
 
 const tabIcon = (name) => ({ color, size }) => <Ionicons name={name} size={size ?? 24} color={color} />;
 
 export default function TabsLayout() {
+  useEffect(() => { initNotifications(); registerForPush().catch(() => {}); }, []);
   return (
     <Tabs
       screenOptions={{

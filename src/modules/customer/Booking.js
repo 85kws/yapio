@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, getEntries, createEntry, updateEntry, bookingSlots } from '../../api/client';
+import { scheduleApptReminder } from '../../notifications/setup';
 import { COLORS } from '../../theme';
 
 const WD = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']; // pazartesi-başı
@@ -63,6 +64,7 @@ export default function Booking({ businessId, theme }) {
         service_id: service.id, service_name: service.data.name, price: service.data.price,
         duration_min: service.data.duration_min || 30, date, time,
       });
+      scheduleApptReminder(date, time, service.data.name).catch(() => {});
       Alert.alert('Randevu alındı', `${service.data.name} · ${date} ${time}`);
       setService(null); await load();
     } catch (e) { Alert.alert('Hata', e?.response?.data?.error || 'Randevu alınamadı'); }
