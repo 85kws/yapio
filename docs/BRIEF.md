@@ -7,7 +7,17 @@
 
 ## 0. GÜNCEL DURUM (en son — buradan oku)
 
-### EN SON tur — dev admin denetim + mini-admin hesap açma + kayıt sistemi + kılavuz (commit 33546f4, build 10 → TestFlight)
+### EN SON tur — ödeme kaldırma + tema/arka plan + kişiye özel program/ölçüm + yeni şablonlar + tier kararı (commit a616017, e22c4e2 — BUILD ALINMADI)
+- **Ödeme komple kaldırıldı:** platform ücreti/fiyat modalı/ödeme-rehberi yok, publish bedava, payments modülü picker'dan + müşteri sekmelerinden gizli. **Ekip (staff) müşteriye gizli.** Mini app ana sayfadan adres/tel kalktı.
+- **Tema & Arka Plan editörü** (`app/business/[id].js` + YENİ `src/components/AppBackground.js`): 10 tema rengi + arka plan Düz/Desen(baloncuk/halka/nokta)/Özel foto → `theme_json`. Desen/foto Dev+/Pro'da olacak.
+- **Kişiye özel program (plans):** mini admin müşteri seçer → başlık+bölümler program atar (`createEntryFor` user_id). Müşteri kendine atananı akordeon görür.
+- **Kişiye özel ölçüm (records):** mini admin müşteri seçer → 16 alanlı detaylı vücut analizi girer (kilo/yağ/kas/su/BMI/iç yağ/metabolik yaş/BMR/protein/mineral/bel/kalça/göğüs/kol), çok-girişli geçmiş. Müşteri kendi geçmişini + kilo değişimini görür (salt-okunur).
+- **6 yeni şablon** (21 sektör): petshop, eczane, doğum/kadın sağlığı, diş, psikolog, kreş. Tüm şablonlardan payments çıktı.
+- **Fiyatlama kararı (Apple IAP, EN SON faz):** Yapio Dev ₺249 / Dev+ ₺399 / Pro ₺449. Kapasite 50/200/∞, mini app 1/3/15, desen+foto Dev+/Pro. Rozet yok, gerçek push+tema rengi hepsinde. Eski usage-based İPTAL. Detay: memory [[yapp-pricing-tiers]].
+- ⚠️ **Henüz build alınmadı** — native faz (adım sayar + bildirimler) + IAP da girince tek build.
+- **Kalan:** adım sayar (expo-sensors) + tüm bildirimler (expo-notifications/APNs) [native faz] · katılım isteği bildirimi (#5) · IAP paketler.
+
+### Önceki tur — dev admin denetim + mini-admin hesap açma + kayıt sistemi + kılavuz (commit 33546f4, build 10 → TestFlight)
 - **Dev super-admin sayfası zenginleşti** (`/yapp/admin`, ADMIN_KEY): "Sahipler & Mini App'ler" + "Tüm Kullanıcılar" sekmeleri. Her kullanıcı: provider (Apple/Google/E-posta/mini-admin açtı), cihaz platformu (ios/android), kayıt tarihi, üyelik sayısı, ban durumu. Her mini app: **kim kullanıyor** (üyeler+username+platform), indirme/içerik/kayıt sayıları. **Sohbet okuma**: messaging mesajları işletme başına okunur (yasa dışı içerik denetimi). Başvuru onay/red, app askıya/aktif, kullanıcı ban/unban — hepsi key ile.
 - **Platform/provider yakalama:** `app_users.provider/platform/created_by_business` kolonları eklendi; auth (register/login/business-login/apple/google) `platform`=Platform.OS alır.
 - **Mini-admin hesap açma (kayıt sistemi):** mini admin "Kullanıcılar" ekranından danışan/çalışan için **kullanıcı adı + şifre** hesabı açar (`POST /businesses/:id/members/create` → global `local:username` hesap + aktif `business_members`). Kişiye bilgiler verilir, normal "Giriş"le girer. App "Özel (kayıt sistemi)" ise sadece üyeler kullanır. (`app/members/[id].js` + `business.routes.js` + `client.createMember`)
