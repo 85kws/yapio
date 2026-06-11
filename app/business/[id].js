@@ -196,6 +196,12 @@ export default function ManageBusiness() {
           ))}
         </View>
 
+        <TouchableOpacity style={s.linkRow} onPress={() => router.push(`/manage/${id}/home`)}>
+          <Ionicons name="create-outline" size={20} color={theme} />
+          <Text style={s.linkText}>Ana Sayfayı Düzenle</Text>
+          <Ionicons name="chevron-forward" size={22} color={COLORS.muted} />
+        </TouchableOpacity>
+
         <TouchableOpacity style={s.linkRow} onPress={() => router.push(`/payment-guide`)}>
           <Ionicons name="card-outline" size={20} color={theme} />
           <Text style={s.linkText}>Ödeme Ayarları (iyzico/Stripe bağla)</Text>

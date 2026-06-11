@@ -1,4 +1,4 @@
-// Giriş: isim + şifre (dev). Apple/Google sonra. Terms onayı zorunlu.
+// Giriş ekranı: KAYIT (yeni hesap) / GİRİŞ (mevcut hesap) — isim + şifre. Apple/Google sonra.
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,25 +9,29 @@ import { COLORS } from '../src/theme';
 
 export default function Login() {
   const router = useRouter();
-  const { loginDev, acceptTermsNow } = useAuth();
+  const { login, register, acceptTermsNow } = useAuth();
+  const [mode, setMode] = useState('register'); // 'register' | 'login'
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
+  const isLogin = mode === 'login';
 
   const needAccept = () => Alert.alert('Onay gerekli', 'Devam için Kullanım Sözleşmesi\'ni kabul etmelisin.');
 
-  const doLogin = async () => {
+  const submit = async () => {
     if (!accepted) return needAccept();
     if (!name.trim()) return Alert.alert('İsim gerekli', 'Adını gir.');
+    if (!password) return Alert.alert('Şifre gerekli', isLogin ? 'Şifreni gir.' : 'Bir şifre belirle.');
     Keyboard.dismiss();
     setBusy(true);
     try {
-      await loginDev(name.trim(), password);
+      if (isLogin) await login(name.trim(), password);
+      else await register(name.trim(), password);
       await acceptTermsNow().catch(() => {});
       router.replace('/(tabs)/storefront');
     } catch (e) {
-      Alert.alert('Giriş başarısız', e?.response?.data?.error || 'Sunucuya ulaşılamadı.');
+      Alert.alert(isLogin ? 'Giriş başarısız' : 'Kayıt başarısız', e?.response?.data?.error || 'Sunucuya ulaşılamadı.');
     } finally { setBusy(false); }
   };
 
@@ -38,18 +42,27 @@ export default function Login() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={s.top}>
-            <Text style={s.logo}>yapp</Text>
+            <Text style={s.logo}>Yapio</Text>
             <Text style={s.tagline}>İşletmeler için uygulama dükkanı</Text>
           </View>
 
           <View style={s.card}>
-            <Text style={s.label}>İsmin</Text>
-            <TextInput style={s.input} value={name} onChangeText={setName} placeholder="Adın" placeholderTextColor="#B0B0C0" returnKeyType="next" />
-            <Text style={[s.label, { marginTop: 14 }]}>Şifre</Text>
-            <TextInput style={s.input} value={password} onChangeText={setPassword} placeholder="Şifre" placeholderTextColor="#B0B0C0" secureTextEntry returnKeyType="done" onSubmitEditing={doLogin} />
+            <Text style={s.cardTitle}>{isLogin ? 'Giriş Yap' : 'Hesap Oluştur'}</Text>
 
-            <TouchableOpacity style={[s.primaryBtn, !accepted && s.disabled]} onPress={doLogin} disabled={busy}>
-              {busy ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryText}>Devam Et</Text>}
+            <Text style={s.label}>İsmin</Text>
+            <TextInput style={s.input} value={name} onChangeText={setName} placeholder="Adın" placeholderTextColor="#B0B0C0" returnKeyType="next" autoCapitalize="words" />
+            <Text style={[s.label, { marginTop: 14 }]}>Şifre</Text>
+            <TextInput style={s.input} value={password} onChangeText={setPassword} placeholder={isLogin ? 'Şifren' : 'Bir şifre belirle (en az 4)'} placeholderTextColor="#B0B0C0" secureTextEntry returnKeyType="done" onSubmitEditing={submit} />
+
+            <TouchableOpacity style={[s.primaryBtn, !accepted && s.disabled]} onPress={submit} disabled={busy}>
+              {busy ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryText}>{isLogin ? 'Giriş Yap' : 'Kayıt Ol'}</Text>}
+            </TouchableOpacity>
+
+            <TouchableOpacity style={s.switchRow} onPress={() => setMode(isLogin ? 'register' : 'login')} activeOpacity={0.7}>
+              <Text style={s.switchText}>
+                {isLogin ? 'Hesabın yok mu? ' : 'Zaten bir hesabın var mı? '}
+                <Text style={s.switchLink}>{isLogin ? 'Kayıt ol' : 'Giriş yap'}</Text>
+              </Text>
             </TouchableOpacity>
 
             <View style={s.divider}><View style={s.line} /><Text style={s.or}>veya</Text><View style={s.line} /></View>
@@ -68,7 +81,6 @@ export default function Login() {
               </Text>
             </TouchableOpacity>
           </View>
-          <Text style={s.note}>Test girişi (geliştirme). Apple/Google sonra aktif.</Text>
         </ScrollView>
       </TouchableWithoutFeedback>
     </SafeAreaView>
@@ -78,15 +90,19 @@ export default function Login() {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg },
   scroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 30 },
-  top: { alignItems: 'center', marginBottom: 30 },
+  top: { alignItems: 'center', marginBottom: 26 },
   logo: { fontSize: 54, fontWeight: '900', color: COLORS.primary, letterSpacing: -1 },
   tagline: { fontSize: 15, color: COLORS.muted, marginTop: 6 },
   card: { backgroundColor: COLORS.card, borderRadius: 20, padding: 22, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
+  cardTitle: { fontSize: 20, fontWeight: '800', color: COLORS.text, marginBottom: 16 },
   label: { fontSize: 13, fontWeight: '700', color: COLORS.muted, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
   input: { backgroundColor: '#F1F1F7', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 14, fontSize: 17, color: COLORS.text },
   primaryBtn: { backgroundColor: COLORS.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 18 },
   primaryText: { color: '#fff', fontWeight: '800', fontSize: 17 },
   disabled: { opacity: 0.4 },
+  switchRow: { alignItems: 'center', marginTop: 14 },
+  switchText: { fontSize: 14, color: COLORS.muted },
+  switchLink: { color: COLORS.primary, fontWeight: '800' },
   divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 16 },
   line: { flex: 1, height: 1, backgroundColor: COLORS.border },
   or: { color: COLORS.muted, marginHorizontal: 12, fontSize: 13 },
@@ -97,5 +113,4 @@ const s = StyleSheet.create({
   checkboxOn: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   acceptText: { flex: 1, fontSize: 13, color: COLORS.muted, lineHeight: 19 },
   acceptLink: { color: COLORS.primary, fontWeight: '700' },
-  note: { textAlign: 'center', color: COLORS.muted, fontSize: 12, marginTop: 20 },
 });

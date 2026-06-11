@@ -1,13 +1,15 @@
-// Müşteri randevu akışı: hizmet seç → tarih → uygun saat → onayla. + Randevularım.
-import React, { useState, useEffect, useCallback } from 'react';
+// Müşteri randevu akışı: hizmet seç → TAKVİM (uçak-bileti tarzı: dolu gün soluk, boş gün açık)
+// → uygun saat → onayla. + Randevularım.
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, getEntries, createEntry, updateEntry, bookingSlots } from '../../api/client';
 import { COLORS } from '../../theme';
 
-const DAYS = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+const WD = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']; // pazartesi-başı
+const DAYS_N = 28; // 4 hafta ileri
 const fmtDate = (d) => d.toISOString().slice(0, 10);
-const next14 = () => Array.from({ length: 14 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i); return d; });
+const mondayIdx = (d) => (d.getDay() + 6) % 7; // Pzt=0 ... Paz=6
 
 export default function Booking({ businessId, theme }) {
   const [services, setServices] = useState([]);
@@ -15,9 +17,15 @@ export default function Booking({ businessId, theme }) {
   const [loading, setLoading] = useState(true);
   const [service, setService] = useState(null);
   const [date, setDate] = useState(fmtDate(new Date()));
-  const [slots, setSlots] = useState([]);
-  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [avail, setAvail] = useState({});        // { 'YYYY-MM-DD': string[] }  gün-başına boş saatler
+  const [availLoading, setAvailLoading] = useState(false);
   const [booking, setBooking] = useState(false);
+
+  // bugünden başlayan 28 gün (sabit kimlik)
+  const dates = useMemo(() => {
+    const t = new Date(); t.setHours(0, 0, 0, 0);
+    return Array.from({ length: DAYS_N }, (_, i) => { const d = new Date(t); d.setDate(d.getDate() + i); return d; });
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -28,13 +36,25 @@ export default function Booking({ businessId, theme }) {
   }, [businessId]);
   useEffect(() => { load(); }, [load]);
 
-  const loadSlots = useCallback(async () => {
-    if (!service) return;
-    setSlotsLoading(true);
-    try { setSlots((await bookingSlots(businessId, date, service.data.duration_min || 30)).slots); }
-    catch { setSlots([]); } finally { setSlotsLoading(false); }
-  }, [businessId, date, service]);
-  useEffect(() => { loadSlots(); }, [loadSlots]);
+  // hizmet seçilince tüm günlerin müsaitliğini paralel çek
+  const loadAvail = useCallback(async () => {
+    if (!service) { setAvail({}); return; }
+    setAvailLoading(true);
+    try {
+      const dur = service.data.duration_min || 30;
+      const results = await Promise.all(dates.map(async (d) => {
+        const ds = fmtDate(d);
+        try { const r = await bookingSlots(businessId, ds, dur); return [ds, r.slots || []]; }
+        catch { return [ds, []]; }
+      }));
+      const map = Object.fromEntries(results);
+      setAvail(map);
+      // ilk boş günü otomatik seç
+      const firstFree = dates.map(fmtDate).find((ds) => map[ds]?.length > 0);
+      setDate(firstFree || fmtDate(dates[0]));
+    } finally { setAvailLoading(false); }
+  }, [businessId, service, dates]);
+  useEffect(() => { loadAvail(); }, [loadAvail]);
 
   const book = async (time) => {
     setBooking(true);
@@ -55,6 +75,14 @@ export default function Booking({ businessId, theme }) {
   ]);
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
+
+  // takvim hücreleri: ilk haftaya boşluk doldur (pazartesi hizalama)
+  const lead = mondayIdx(dates[0]);
+  const cells = [...Array(lead).fill(null), ...dates];
+  const weeks = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+  const monthLabel = dates[0].toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+  const daySlots = avail[date] || [];
 
   return (
     <ScrollView contentContainerStyle={s.wrap}>
@@ -88,28 +116,54 @@ export default function Booking({ businessId, theme }) {
         </TouchableOpacity>
       ))}
 
-      {/* Tarih + saat */}
+      {/* TAKVİM + saat */}
       {service && (
         <>
-          <Text style={s.h}>Tarih</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 4 }}>
-            {next14().map((d) => {
-              const ds = fmtDate(d); const active = ds === date;
-              return (
-                <TouchableOpacity key={ds} style={[s.day, active && { backgroundColor: theme }]} onPress={() => setDate(ds)}>
-                  <Text style={[s.dayDow, active && { color: '#fff' }]}>{DAYS[d.getDay()]}</Text>
-                  <Text style={[s.dayNum, active && { color: '#fff' }]}>{d.getDate()}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+          <View style={s.calHead}>
+            <Text style={s.h}>Tarih seç</Text>
+            {availLoading ? <ActivityIndicator color={theme} size="small" /> : null}
+          </View>
+          <Text style={s.month}>{monthLabel}</Text>
+
+          <View style={s.wdRow}>
+            {WD.map((w) => <Text key={w} style={s.wd}>{w}</Text>)}
+          </View>
+
+          {weeks.map((week, wi) => (
+            <View key={wi} style={s.weekRow}>
+              {week.map((d, di) => {
+                if (!d) return <View key={di} style={s.cell} />;
+                const ds = fmtDate(d);
+                const free = (avail[ds]?.length || 0) > 0;
+                const active = ds === date;
+                return (
+                  <TouchableOpacity
+                    key={di}
+                    style={s.cell}
+                    disabled={!free || availLoading}
+                    activeOpacity={0.7}
+                    onPress={() => setDate(ds)}
+                  >
+                    <View style={[s.dayInner, active && { backgroundColor: theme }, !free && s.dayFull]}>
+                      <Text style={[s.dayNum, active && { color: '#fff' }, !free && s.dayNumFull]}>{d.getDate()}</Text>
+                      {free && !active ? <View style={[s.dot, { backgroundColor: theme }]} /> : <View style={s.dot} />}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          ))}
+          <View style={s.legend}>
+            <View style={[s.dot, { backgroundColor: theme }]} /><Text style={s.legendText}>boş</Text>
+            <View style={[s.dot, { backgroundColor: COLORS.border, marginLeft: 14 }]} /><Text style={s.legendText}>dolu/kapalı</Text>
+          </View>
 
           <Text style={s.h}>Uygun saat</Text>
-          {slotsLoading ? <ActivityIndicator color={theme} /> : slots.length === 0 ? (
+          {availLoading ? <ActivityIndicator color={theme} /> : daySlots.length === 0 ? (
             <Text style={s.empty}>Bu güne uygun saat yok.</Text>
           ) : (
             <View style={s.slots}>
-              {slots.map((t) => (
+              {daySlots.map((t) => (
                 <TouchableOpacity key={t} style={[s.slot, { borderColor: theme }]} disabled={booking} onPress={() => book(t)}>
                   <Text style={[s.slotText, { color: theme }]}>{t}</Text>
                 </TouchableOpacity>
@@ -135,9 +189,20 @@ const s = StyleSheet.create({
   svc: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 2, borderColor: 'transparent' },
   svcName: { fontSize: 16, fontWeight: '700', color: COLORS.text },
   svcMeta: { fontSize: 13, color: COLORS.muted, marginTop: 2 },
-  day: { width: 56, paddingVertical: 10, borderRadius: 12, backgroundColor: '#fff', alignItems: 'center' },
-  dayDow: { fontSize: 12, color: COLORS.muted, fontWeight: '600' },
-  dayNum: { fontSize: 18, fontWeight: '800', color: COLORS.text, marginTop: 2 },
+  // takvim
+  calHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  month: { fontSize: 14, fontWeight: '700', color: COLORS.muted, textTransform: 'capitalize', marginBottom: 8 },
+  wdRow: { flexDirection: 'row', marginBottom: 4 },
+  wd: { flex: 1, textAlign: 'center', fontSize: 11, fontWeight: '700', color: COLORS.muted },
+  weekRow: { flexDirection: 'row' },
+  cell: { flex: 1, aspectRatio: 1, alignItems: 'center', justifyContent: 'center', padding: 3 },
+  dayInner: { width: '100%', flex: 1, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F4F8' },
+  dayFull: { backgroundColor: 'transparent' },
+  dayNum: { fontSize: 16, fontWeight: '700', color: COLORS.text },
+  dayNumFull: { color: '#C8C8D0', fontWeight: '500' },
+  dot: { width: 5, height: 5, borderRadius: 3, marginTop: 3, backgroundColor: 'transparent' },
+  legend: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
+  legendText: { fontSize: 12, color: COLORS.muted, marginLeft: 5 },
   slots: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   slot: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, borderWidth: 1.5 },
   slotText: { fontWeight: '700', fontSize: 15 },

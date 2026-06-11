@@ -28,7 +28,8 @@ api.interceptors.request.use(async (config) => {
 });
 
 // ---- Auth ----
-export const authDev = (name, password) => api.post('/auth/dev', { name, password }).then((r) => r.data);
+export const authLogin = (name, password) => api.post('/auth/login', { name, password }).then((r) => r.data);
+export const authRegister = (name, password, email) => api.post('/auth/register', { name, password, email }).then((r) => r.data);
 export const authApple = (identityToken, name) => api.post('/auth/apple', { identityToken, name }).then((r) => r.data);
 export const authGoogle = (idToken) => api.post('/auth/google', { idToken }).then((r) => r.data);
 export const getMe = () => api.get('/auth/me').then((r) => r.data.user);
