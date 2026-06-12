@@ -1,4 +1,5 @@
-// Mini admin KILAVUZU — tüm özellikler, adminlik, ayarlar nasıl çalışır (çok ayrıntılı).
+// Mini admin KILAVUZU — tüm özellikler, adminlik, ayarlar acemiye anlatır gibi (çok ayrıntılı).
+// GuideAccordion: hem bu ekranda hem ilk-giriş popup'ında kullanılır.
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,77 +9,120 @@ import { COLORS, SIZES } from '../src/theme';
 import { MODULE_INFO } from '../src/modules';
 import { moduleIcon } from '../src/icons';
 
-const SECTIONS = [
+export const GUIDE_SECTIONS = [
   {
     icon: 'rocket-outline', title: 'Yapio nedir, mini admin kimdir?',
     body: [
-      'Yapio, işletmelerin kendi "mini uygulamasını" kurduğu bir uygulama dükkânıdır. Tek tek uygulama yazmazsın; modülleri seçip kendi mini app\'ini oluşturursun.',
-      'Sen bu mini app\'in yöneticisisin = "mini admin". Sayfayı düzenler, özellikleri açar/kapatır, müşteri/danışan hesapları açarsın.',
-      'Müşterilerin mini app\'ini Yapio içinden bulur, açar ve kullanır. Sen tüm randevu/sipariş/mesaj/ödeme akışını yönetirsin.',
+      'Yapio, işletmelerin kendi "mini uygulamasını" kurduğu bir uygulama dükkânıdır. Kod yazmazsın; hazır özellikleri (modülleri) seçip kendi mini app\'ini oluşturursun.',
+      'Sen bu mini app\'in yöneticisisin = "mini admin". Sayfanı düzenler, özellikleri açıp kapatır, müşteri/danışan hesapları açar, randevu-mesaj-program-ölçümleri yönetirsin.',
+      'Müşterilerin mini app\'ini Yapio içinden bulup kullanır.',
     ],
   },
   {
-    icon: 'construct-outline', title: 'Uygulamanı kurma',
+    icon: 'construct-outline', title: 'Uygulamanı kurma (adım adım)',
     body: [
-      '1) "İşletmem / + Yeni" ile başla. Sektörünü seç (kuaför, klinik, restoran...).',
-      '2) Bir şablon seç — şablon, sektörüne uygun özellikleri ve örnek ana sayfayı hazır getirir.',
-      '3) İşletme bilgilerini gir (ad, adres, telefon, çalışma saati). İstediğin an "İşletmem" ekranından değiştirebilirsin.',
-      '4) Logonu yükle (işletme ekranında ikona dokun). Logo her yerde uygulama ikonun olur.',
+      '1) Profil > İşletmelerim > "Hemen Başla" (veya sağ üstte "Yeni").',
+      '2) Sektörünü seç (kuaför, klinik, restoran, eczane...).',
+      '3) Hazır şablon seç — sektörüne uygun özellikler ve örnek ana sayfa otomatik gelir.',
+      '4) İşletme adı/bilgilerini gir. Sonra İşletmem ekranından her şeyi değiştirebilirsin.',
+      '5) Logonu yükle: İşletmem ekranında yuvarlak ikona dokun → galeriden seç.',
+    ],
+  },
+  {
+    icon: 'toggle-outline', title: 'Özellikleri (modülleri) açma / yönetme',
+    body: [
+      'İşletmem ekranını aç. "Özellikler" listesinde her modülün yanında bir AÇMA/KAPAMA anahtarı (switch) var.',
+      'Bir özelliği açmak: anahtara dokun, yeşil olsun. Kapatmak: tekrar dokun.',
+      'Özellik açılınca yanında "Yönet" tuşu çıkar. Ona bas → o özelliğin içeriğini eklersin (örn. randevuda hizmet ekle, menüde ürün ekle).',
+      'Bir özelliğin ne işe yaradığını görmek: adının yanındaki (i) bilgi simgesine dokun.',
+      'Müşteri, mini app\'i açınca sadece AÇIK özellikleri alttaki menüde görür.',
     ],
   },
   {
     icon: 'create-outline', title: 'Ana sayfanı düzenleme',
     body: [
-      'İşletme ekranı > "Ana Sayfayı Düzenle". Mini app açılınca görünen içeriği sen kurarsın.',
-      'Bloklar: METİN (başlık/normal, sola/ortaya/sağa), GÖRSEL (galeriden yükle), BUTON (bir özelliğe götürür, telefonu arar veya link açar).',
-      'Blokları ekle, yukarı/aşağı taşıyarak sırala, sil. "Önizle" ile gerçek görünümü gör, "Kaydet" ile yayınla.',
-      'İpucu: en üste kısa bir karşılama metni + bir "Randevu Al" butonu koy; müşteri girer girmez ne yapacağını bilsin.',
+      'İşletmem > "Ana Sayfayı Düzenle". Mini app açılınca görünen içeriği sen kurarsın.',
+      'Blok ekle: Metin (başlık/normal, hizalama), Görsel (galeriden), Buton (bir özelliğe götürür, telefonu arar veya link açar).',
+      'Blokları yukarı/aşağı taşıyarak sırala, sil. "Önizle" ile gör, "Kaydet" ile yayınla.',
+      'İpucu: en üste kısa karşılama + "Randevu Al" butonu koy.',
     ],
   },
   {
-    icon: 'apps-outline', title: 'Özellikler (modüller) nasıl çalışır?',
+    icon: 'color-palette-outline', title: 'Tema rengi & arka plan',
+    body: [
+      'İşletmem > "Tema & Arka Plan". Hazır renklerden seç ya da kendi renk kodunu (#) gir.',
+      'Arka plan: Düz renk, Desen (10 çeşit — önizlemeli) veya kendi Fotoğrafın.',
+      '(Desen ve foto arka plan, üst paketlerde aktif olur.)',
+    ],
+  },
+  {
+    icon: 'apps-outline', title: 'Tüm özellikler ne işe yarar?',
     modules: true,
   },
   {
-    icon: 'lock-closed-outline', title: 'Kayıt sistemi & hesap açma',
+    icon: 'lock-closed-outline', title: 'Kayıt sistemi & müşteri hesabı açma',
     body: [
-      'Mini app\'ini "Özel (kayıt sistemi)" yaparsan, herkes giremez — sadece senin izin verdiğin kişiler kullanır. Sadece özel danışanlarla çalışan işletmeler için idealdir.',
-      'İşletme ekranı > Erişim > "Özel (kayıt sistemi)" seç. Sonra "Kullanıcılar" ekranını aç.',
-      'HESAP AÇ: kullanıcı adı + şifre belirleyip kişiye verirsin. Örnek: güzellik merkezine Ali geldi, "bana hesap açar mısın?" dedi. Sen kullanıcı adı "ali", şifre "12345" yaparsın ve Ali\'ye verirsin.',
-      'Ali, Yapio giriş ekranında "Giriş" ile bu bilgilerle girer ve senin uygulamanı kullanır. Kullanıcı adı alınmışsa benzersiz bir ad seç (örn. isme şube ekle).',
-      'Alternatif: KATILIM KODU. Kodu paylaşırsın, kodu girenler otomatik üye olur. Onay bekleyenleri de elle onaylar/çıkarırsın.',
+      'Mini app\'ini "Özel (kayıt sistemi)" yaparsan herkes giremez — sadece senin açtığın kişiler kullanır. Özel danışanlarla çalışan işletmeler için.',
+      'İşletmem > Erişim > "Özel (kayıt sistemi)" seç. Sonra "Kullanıcılar" ekranını aç.',
+      'HESAP AÇ: kullanıcı adı + şifre belirle, kişiye ver. Örnek: Ali geldi, hesap istedi → kullanıcı adı "ali", şifre "12345" yaparsın, Ali\'ye verirsin.',
+      'Ali, Yapio giriş ekranında "Giriş" ile bu bilgilerle girer ve senin uygulamanı kullanır. Kullanıcı adı alınmışsa benzersiz seç.',
+      'Alternatif: KATILIM KODU paylaş — kodu girenler üye olur. İstek gelenleri "Kullanıcılar"dan onaylar/çıkarırsın.',
     ],
   },
   {
-    icon: 'calendar-outline', title: 'Randevu sistemi (Booking)',
+    icon: 'calendar-outline', title: 'Randevu sistemi',
     body: [
-      'Önce "Çalışma Saatleri"ni gir (açılış–kapanış). Sonra "Hizmetler" ekle: ad, süre (dk), fiyat.',
-      'Müşteri mini app\'te hizmeti seçer, takvimden uygun günü seçer (dolu/geçmiş günler soluk, boş günler açık), boş saati seçip randevu alır. Çakışan saatler otomatik engellenir.',
-      'Gelen randevuları "Yönet"ten onaylar veya iptal edersin.',
+      'Randevu özelliğini aç > "Yönet". Önce "Çalışma Saatleri" gir. Sonra "Hizmetler" ekle (ad, süre, fiyat).',
+      'Müşteri hizmeti seçer, takvimden boş gün/saat seçip randevu alır (dolu günler soluk). Çakışan saat otomatik engellenir.',
+      'Gelen randevuları "Yönet"ten onaylar/iptal edersin; müşteriye otomatik bildirim gider.',
     ],
   },
   {
-    icon: 'rocket-outline', title: 'Yayınlama & ücret',
+    icon: 'chatbubbles-outline', title: 'Mesajlaşma',
     body: [
-      'Hazır olunca "Yayınla". Yayınlamadan önce tahmini aylık ücret gösterilir.',
-      'Abonelik YOK — sadece kullandığın kadar ödersin. Açtığın ağır modüller + aktif müşteri + bildirim + medya kullanımına göre hesaplanır.',
-      'İlk birkaç aktif müşteri ücretsizdir; ötesi müşteri başına küçük bir ücrettir. Yayınlayınca app vitrinde görünür.',
+      'Müşteriler sana tek tek yazar. Sen "Mesaj" özelliğini açınca, WhatsApp gibi bir kişi listesi görürsün.',
+      'Bir kişiye dokun → onun sohbetini aç → yanıt yaz. Yeni mesaj gelince bildirim alırsın.',
     ],
   },
   {
-    icon: 'card-outline', title: 'Ödeme ayarları',
+    icon: 'clipboard-outline', title: 'Program & ölçüm (kişiye özel)',
     body: [
-      'Müşteriden ücret alacaksan kendi ödeme geçidini (iyzico/Stripe) bağlarsın — para doğrudan sana gelir, Yapio araya girmez.',
-      'İşletme ekranı > "Ödeme Ayarları" rehberini takip et.',
-      'Not: Yapio yalnızca FİZİKSEL hizmet ödemelerini destekler (Apple kuralı). Dijital/online ürün satışı yapılamaz.',
+      'Program: müşteri seç → başlık + bölümlerle (Kahvaltı/Öğle... veya Pazartesi/Salı...) program hazırla, ata. Müşteri kendi programını görür.',
+      'Ölçüm: müşteri seç → detaylı vücut analizi gir (kilo, yağ, kas, BMI, bel...). Birden çok ölçüm = geçmiş. Müşteri kendi geçmişini ve kilo değişimini görür.',
     ],
   },
   {
-    icon: 'shield-checkmark-outline', title: 'Güvenlik & sorumluluk',
+    icon: 'notifications-outline', title: 'Bildirimler',
     body: [
-      'Müşteri şifrelerini güvenli sakla, kimseyle paylaşma. Bir hesabı kapatmak için "Kullanıcılar"dan çıkar.',
-      'Uygulama içi sohbetler denetlenebilir; yasa dışı içerik tespit edilirse platform müdahale edip işletmeyi askıya alabilir.',
-      'Sözleşmelere ve KVKK\'ya uy. Sadece gerçek, izinli kişilere hesap aç.',
+      'Yapio otomatik bildirim gönderir: yeni katılım isteği, yeni mesaj, yeni randevu (sana); randevu onayı/iptali, yeni program/ölçüm, üyelik onayı (müşteriye); randevu yaklaşınca hatırlatma.',
+      'Ayrı bir şey yapman gerekmez — özellikleri kullandıkça bildirimler kendiliğinden gider.',
+    ],
+  },
+  {
+    icon: 'rocket-outline', title: 'Yayınlama',
+    body: [
+      'Hazır olunca İşletmem > "Yayınla". App vitrinde görünür, müşterilerin bulup kullanır.',
+      'Yayınlamak ücretsiz. Paket/limit yükseltmeleri ileride App Store üzerinden olacak.',
+    ],
+  },
+  {
+    icon: 'card-outline', title: 'Sipariş & ödeme',
+    body: [
+      'Sipariş özelliğiyle müşteri menüden sipariş verir; sen siparişleri görür, durumunu (hazırlanıyor/hazır) işaretlersin.',
+      'ÖNEMLİ: Uygulama içinde PARA TAHSİL EDİLMEZ. Müşteri siparişini verir, ödemeyi teslimde / gel-al sırasında fiziksel yapar. (Apple kuralı: dijital içi ödeme yok.)',
+    ],
+  },
+  {
+    icon: 'shield-checkmark-outline', title: 'Güvenlik & sorumluluk (önemli)',
+    body: [
+      'KİŞİSEL VERİ (KVKK/GDPR): Müşteri verilerini (ad, telefon, ölçüm, mesaj, sağlık bilgisi) yalnızca hizmet için, kişinin izniyle topla. Veri sorumlusu SENSİN. Müşteri "verimi sil" derse silmelisin (Kullanıcılar > çıkar; ilgili kayıtları sil).',
+      'ŞİFRELER: Açtığın hesapların şifrelerini kişiye güvenli ilet, kimseyle paylaşma, herkese aynı şifreyi verme. Bir kişinin erişimini kapatmak için Kullanıcılar\'dan çıkar.',
+      'SAĞLIK VERİSİ (klinik/diyet/estetik): Girdiğin ölçüm/program tıbbi sorumluluğundadır. Uygulama bir ARAÇTIR; teşhis/tedavi aracı değildir. Yanlış/eksik bilgiden doğan sonuçtan sen sorumlusun.',
+      'SOHBET DENETİMİ: Uygulama içi mesajlar denetlenebilir. Yasa dışı, taciz, dolandırıcılık içerik tespit edilirse işletmen askıya alınır ve gerekirse yetkililere bildirilir.',
+      'DOĞRU KULLANIM: Sahte hesap açma; kişileri izinsiz ekleme; yanıltıcı içerik/kampanya yasak. Sadece gerçek, rızası olan kişilere hesap aç.',
+      'ÖDEME & VERGİ: Fiziksel tahsilat, fatura ve vergi yükümlülüğü tamamen sana aittir; Yapio aracı değildir, ödemeye karışmaz.',
+      'İÇERİK: Yüklediğin görsel/metinlerin haklarına sahip olmalısın. Telif/marka ihlali yasaktır.',
+      'Şüphen varsa: gizliliği koru, az veri tut, izin al. Sözleşmeyi (Profil > Kullanım Sözleşmesi) oku.',
     ],
   },
 ];
@@ -94,12 +138,9 @@ function Item({ section, theme, open, onToggle }) {
       {open && (
         <View style={s.body}>
           {section.modules ? (
-            Object.keys(MODULE_INFO).map((k) => (
+            Object.keys(MODULE_INFO).filter((k) => k !== 'payments').map((k) => (
               <View key={k} style={s.mod}>
-                <View style={s.modHead}>
-                  <Ionicons name={moduleIcon(k)} size={16} color={theme} />
-                  <Text style={s.modLabel}>{MODULE_INFO[k].label}</Text>
-                </View>
+                <View style={s.modHead}><Ionicons name={moduleIcon(k)} size={16} color={theme} /><Text style={s.modLabel}>{MODULE_INFO[k].label}</Text></View>
                 <Text style={s.modDetail}>{MODULE_INFO[k].detail}</Text>
               </View>
             ))
@@ -112,13 +153,19 @@ function Item({ section, theme, open, onToggle }) {
   );
 }
 
+// Hem ekranda hem popup'ta kullanılan akordeon.
+export function GuideAccordion({ theme = COLORS.primary, startOpen = 0 }) {
+  const [open, setOpen] = useState(startOpen);
+  return GUIDE_SECTIONS.map((sec, i) => (
+    <Item key={i} section={sec} theme={theme} open={open === i} onToggle={() => setOpen(open === i ? -1 : i)} />
+  ));
+}
+
 export default function Guide() {
   const router = useRouter();
-  const [open, setOpen] = useState(0);
-  const theme = COLORS.primary;
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <View style={s.header}>
+      <View style={s.headerBar}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={22} color={COLORS.primary} /><Text style={s.back}>Geri</Text>
         </TouchableOpacity>
@@ -126,9 +173,7 @@ export default function Guide() {
       <ScrollView contentContainerStyle={{ padding: SIZES.pad, paddingBottom: 40 }}>
         <Text style={s.title}>Mini Admin Kılavuzu</Text>
         <Text style={s.sub}>Tüm özellikler, ayarlar ve adminlik adım adım. Bir başlığa dokun, açılsın.</Text>
-        {SECTIONS.map((sec, i) => (
-          <Item key={i} section={sec} theme={theme} open={open === i} onToggle={() => setOpen(open === i ? -1 : i)} />
-        ))}
+        <GuideAccordion />
       </ScrollView>
     </SafeAreaView>
   );
@@ -136,7 +181,7 @@ export default function Guide() {
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg },
-  header: { paddingHorizontal: SIZES.pad, paddingVertical: 8 },
+  headerBar: { paddingHorizontal: SIZES.pad, paddingVertical: 8 },
   backBtn: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start' },
   back: { color: COLORS.primary, fontSize: 17, fontWeight: '600' },
   title: { fontSize: 26, fontWeight: '800', color: COLORS.text },

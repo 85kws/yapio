@@ -1,23 +1,36 @@
 // İşletmelerim: onaylı satıcının app'leri + yeni kurma. (Profil'den erişilir.)
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Modal, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 import { myBusinesses } from '../src/api/client';
 import { COLORS, SIZES } from '../src/theme';
 import { AppIcon } from '../src/icons';
+import { GuideAccordion } from './guide';
 
 const STATUS = { draft: { t: 'Taslak', c: '#8A8AA3' }, active: { t: 'Yayında', c: COLORS.success }, suspended: { t: 'Askıda', c: COLORS.danger } };
 
 export default function MyBusinesses() {
   const router = useRouter();
   const [list, setList] = useState([]);
+  const [showGuide, setShowGuide] = useState(false);
 
   const load = useCallback(async () => {
-    try { setList(await myBusinesses()); } catch (e) { console.warn('mine', e?.message); }
+    try {
+      const m = await myBusinesses();
+      setList(m);
+      // Hiç app'i olmayan (yeni onaylı) satıcı → ilk girişte kılavuz popup'ı (bir kez)
+      if (m.length === 0) {
+        const seen = await SecureStore.getItemAsync('yapio_guide_seen');
+        if (!seen) setShowGuide(true);
+      }
+    } catch (e) { console.warn('mine', e?.message); }
   }, []);
   useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  const closeGuide = async () => { try { await SecureStore.setItemAsync('yapio_guide_seen', '1'); } catch {} setShowGuide(false); };
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
@@ -68,6 +81,19 @@ export default function MyBusinesses() {
           );
         }}
       />
+
+      <Modal visible={showGuide} animationType="slide" onRequestClose={closeGuide}>
+        <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
+          <ScrollView contentContainerStyle={{ padding: SIZES.pad, paddingBottom: 30 }}>
+            <Text style={s.title}>Hoş geldin! 👋</Text>
+            <Text style={s.guideSub}>İlk uygulamanı kurmadan önce nasıl çalıştığını oku. Sonra Profil &gt; Kılavuz'dan tekrar bakabilirsin.</Text>
+            <GuideAccordion startOpen={0} />
+            <TouchableOpacity style={s.gotIt} onPress={closeGuide}>
+              <Text style={s.gotItText}>Anladım, Başlayalım</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -92,4 +118,7 @@ const s = StyleSheet.create({
   emptyText: { fontSize: 15, color: COLORS.muted, textAlign: 'center', lineHeight: 22, marginBottom: 22 },
   emptyBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 36, paddingVertical: 14, borderRadius: 14 },
   emptyBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  guideSub: { fontSize: 14, color: COLORS.muted, marginTop: 4, marginBottom: 16, lineHeight: 20 },
+  gotIt: { backgroundColor: COLORS.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
+  gotItText: { color: '#fff', fontWeight: '800', fontSize: 17 },
 });
