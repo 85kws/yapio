@@ -3,9 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, createItem, deleteItem } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function ManageCampaigns({ businessId, theme }) {
+  const { t } = useLang();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [f, setF] = useState({ title: '', desc: '', discount: '' });
@@ -24,7 +26,7 @@ export default function ManageCampaigns({ businessId, theme }) {
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
   return (
     <ScrollView contentContainerStyle={s.wrap}>
-      <Text style={s.h}>Kampanyalar ({items.length})</Text>
+      <Text style={s.h}>{t('campaigns_label')} ({items.length})</Text>
       {items.map((it) => (
         <View key={it.id} style={s.row}>
           <View style={{ flex: 1 }}>
@@ -34,11 +36,11 @@ export default function ManageCampaigns({ businessId, theme }) {
           <TouchableOpacity onPress={() => deleteItem(businessId, 'campaigns', it.id).then(load)}><Ionicons name="trash-outline" size={20} color={COLORS.danger} /></TouchableOpacity>
         </View>
       ))}
-      <Text style={s.h}>Yeni kampanya</Text>
-      <TextInput style={s.input} value={f.title} onChangeText={(v) => setF({ ...f, title: v })} placeholder="Başlık (örn: Hafta Sonu)" placeholderTextColor="#B0B0C0" />
-      <TextInput style={s.input} value={f.discount} onChangeText={(v) => setF({ ...f, discount: v })} placeholder="İndirim (örn: %20)" placeholderTextColor="#B0B0C0" />
-      <TextInput style={s.input} value={f.desc} onChangeText={(v) => setF({ ...f, desc: v })} placeholder="Açıklama" placeholderTextColor="#B0B0C0" />
-      <TouchableOpacity style={[s.addBtn, { backgroundColor: theme }]} onPress={add}><Ionicons name="add" size={20} color="#fff" /><Text style={s.addText}>Ekle</Text></TouchableOpacity>
+      <Text style={s.h}>{t('new_campaign')}</Text>
+      <TextInput style={s.input} value={f.title} onChangeText={(v) => setF({ ...f, title: v })} placeholder={t('campaign_title_ph')} placeholderTextColor="#B0B0C0" />
+      <TextInput style={s.input} value={f.discount} onChangeText={(v) => setF({ ...f, discount: v })} placeholder={t('discount_ph')} placeholderTextColor="#B0B0C0" />
+      <TextInput style={s.input} value={f.desc} onChangeText={(v) => setF({ ...f, desc: v })} placeholder={t('desc_ph')} placeholderTextColor="#B0B0C0" />
+      <TouchableOpacity style={[s.addBtn, { backgroundColor: theme }]} onPress={add}><Ionicons name="add" size={20} color="#fff" /><Text style={s.addText}>{t('add')}</Text></TouchableOpacity>
       <View style={{ height: 30 }} />
     </ScrollView>
   );

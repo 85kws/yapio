@@ -3,9 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, createItem, updateItem, getEntries, updateEntry } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function ManageLoyalty({ businessId, theme }) {
+  const { t } = useLang();
   const [config, setConfig] = useState(null);
   const [cards, setCards] = useState([]);
   const [goal, setGoal] = useState('10');
@@ -39,20 +41,20 @@ export default function ManageLoyalty({ businessId, theme }) {
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
   return (
     <ScrollView contentContainerStyle={s.wrap}>
-      <Text style={s.h}>Kart Ayarı</Text>
-      <Text style={s.lbl}>Hedef (kaç damgada ödül)</Text>
+      <Text style={s.h}>{t('card_setup')}</Text>
+      <Text style={s.lbl}>{t('loyalty_goal_ph')}</Text>
       <TextInput style={s.input} value={goal} onChangeText={setGoal} keyboardType="number-pad" placeholderTextColor="#B0B0C0" />
-      <Text style={s.lbl}>Ödül</Text>
-      <TextInput style={s.input} value={reward} onChangeText={setReward} placeholder="Örn: 1 ürün bedava" placeholderTextColor="#B0B0C0" />
-      <TouchableOpacity style={[s.save, { backgroundColor: theme }]} onPress={saveConfig}><Text style={s.saveText}>Kaydet</Text></TouchableOpacity>
+      <Text style={s.lbl}>{t('reward')}</Text>
+      <TextInput style={s.input} value={reward} onChangeText={setReward} placeholder={t('reward_ph')} placeholderTextColor="#B0B0C0" />
+      <TouchableOpacity style={[s.save, { backgroundColor: theme }]} onPress={saveConfig}><Text style={s.saveText}>{t('save')}</Text></TouchableOpacity>
 
-      <Text style={s.h}>Müşteri Kartları ({cards.length})</Text>
-      {cards.length === 0 && <Text style={s.empty}>Henüz kart yok. Müşteri sadakat sekmesini açınca kartı oluşur.</Text>}
+      <Text style={s.h}>{t('customer_cards')} ({cards.length})</Text>
+      {cards.length === 0 && <Text style={s.empty}>{t('no_loyalty_cards')}</Text>}
       {cards.map((c) => (
         <View key={c.id} style={s.card}>
           <View style={{ flex: 1 }}>
-            <Text style={s.who}>{c.user_name || 'Müşteri'}</Text>
-            <Text style={s.meta}>{c.data.stamps || 0} / {goal} damga</Text>
+            <Text style={s.who}>{c.user_name || t('user')}</Text>
+            <Text style={s.meta}>{c.data.stamps || 0} / {goal} {t('stamps')}</Text>
           </View>
           <TouchableOpacity onPress={() => stamp(c, -1)}><Ionicons name="remove-circle-outline" size={28} color={COLORS.muted} /></TouchableOpacity>
           <TouchableOpacity onPress={() => stamp(c, 1)}><Ionicons name="add-circle" size={28} color={theme} /></TouchableOpacity>
