@@ -35,6 +35,7 @@ export default function CanvasEditor() {
   const [sel, setSel] = useState(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const drag = useRef(null);
 
   const load = useCallback(async () => {
@@ -57,12 +58,13 @@ export default function CanvasEditor() {
   const makePan = (el) => PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 3 || Math.abs(g.dy) > 3,
-    onPanResponderGrant: () => { setSel(el.id); drag.current = { id: el.id, x: el.x, y: el.y }; },
+    onPanResponderGrant: () => { setSel(el.id); setDragging(true); drag.current = { id: el.id, x: el.x, y: el.y }; },
     onPanResponderMove: (_, g) => {
       const ds = drag.current; if (!ds) return;
       setEls((a) => a.map((e) => e.id === ds.id ? { ...e, x: clamp(ds.x + g.dx, 0, CW - e.w), y: Math.max(0, ds.y + g.dy) } : e));
     },
-    onPanResponderRelease: () => { drag.current = null; },
+    onPanResponderRelease: () => { drag.current = null; setDragging(false); },
+    onPanResponderTerminate: () => { drag.current = null; setDragging(false); },
   });
 
   const pickImg = async (eid) => {
@@ -94,8 +96,8 @@ export default function CanvasEditor() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
-        <Text style={s.hint}>Öğeyi sürükleyerek taşı. Dokununca aşağıda ayarları çıkar.</Text>
+      <ScrollView contentContainerStyle={{ paddingBottom: 30 }} scrollEnabled={!dragging}>
+        <Text style={s.hint}>Öğeyi sürükleyerek taşı (yukarı-aşağı, sağa-sola). Dokununca aşağıda ayarları çıkar.</Text>
         {/* TUVAL */}
         <View style={[s.canvas, { width: CW, height }]} onStartShouldSetResponder={() => true} onResponderRelease={() => setSel(null)}>
           {els.map((el) => {

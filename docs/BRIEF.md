@@ -7,22 +7,26 @@
 
 ## 0. GÜNCEL DURUM (en son — buradan oku)
 
-### ⚠️ AÇIK SORUN — push capability provisioning (build 11/12 FAILED)
-expo-notifications "Push Notifications" capability + `aps-environment` entitlement ekledi; mevcut iOS provisioning profile (build 9'dan) bunu içermiyor → EAS build fastlane'de patlıyor:
-`Provisioning profile ... doesn't include the Push Notifications capability / aps-environment`.
-Non-interactive build Apple'a kimlik doğrulamadan ("Skipping ... we aren't authenticated") eski profili kullanıyor; ASC API key env (EXPO_ASC_API_KEY_*) credential yenilemeyi tetiklemedi.
-**FIX (1 kez, interactive):** `cd ~/yapp && eas build -p ios --profile production` (interactive) → EAS "set up Push Notifications? Yes" sorar → APNs key + push'lu yeni profil üretir → build geçer. Sonraki non-interactive build'ler çalışır.
-**Alternatif:** push'u (expo-notifications) çıkar → pedometer + diğer her şey eski profille build olur, push'u IAP fazı build'inde (RevenueCat ile birlikte, o da credential adımı ister) geri ekle.
-Kod güvende: commit **ea723af**. Son BAŞARILI TestFlight = **build 10** (önceki tur, push'suz).
+### ✅ Push provisioning ÇÖZÜLDÜ
+build 11/12/13 push-capability eksik provisioning profile yüzünden düşmüştü. ÇÖZÜM: bir kez **interactive** `eas build -p ios --profile production` (Apple ID `baserosmanyigit@gmail.com` + app-specific password, "set up Push Notifications? Yes") → APNs key + push'lu profil üretildi. Artık **non-interactive `eas build` çalışıyor**. Son BAŞARILI TestFlight = **build 15**.
 
-### EN SON tur — NATIVE: adım sayar (pedometer) + push bildirimler (commit ea723af, build 11 → BUILD FAILED, yukarı bak)
+### EN SON tur — tema hex+10 desen, WhatsApp mesaj, kılavuz+popup, Sözleşme v2, Canva editör, dil TR/EN (commit 046f435 → BUILD 15 ✅)
+- **Tema:** renk kodu (#hex) girişi + **10 isimli desen** (`src/components/AppBackground.js` PATTERNS) canlı önizlemeli (`app/business/[id].js`).
+- **Mesaj (admin) WhatsApp tarzı** (`src/modules/manage/Messaging.js`): kişi listesi en-yeni-üstte + arama + saat + avatar + otomatik kaydır. Müşteri düz tek thread.
+- **Sipariş:** modül kalır, uygulama içi ödeme yok — "teslimde/gel-al öde" notu.
+- **Kılavuz baştan** (`app/guide.js`, `GuideAccordion` export): acemi anlatım (modül aç/yönet, hangi tuş), ödeme refsleri silindi, çok-detaylı güvenlik/KVKK. Yeni satıcıya **ilk girişte popup** (`app/my-businesses.js`, SecureStore `yapio_guide_seen`).
+- **Kullanım Sözleşmesi v2.0** (`src/legal/terms.js`, TR+EN, 22 madde): uygulama-içi-ödeme-yok + Apple IAP paket, mini-admin hesap, sağlık verisi, sohbet denetimi, cihaz/bildirim.
+- **Canva editör (YENİ `app/manage/[id]/canvas.js` + `src/components/CanvasView.js`):** tuvalde sürükle-bırak metin/görsel/buton + boyut/yazı/renk/hizalama paneli → `config.landing_canvas`; runtime canvas varsa onu render eder. business'a "Tasarla (Canva)" linki.
+- **Dil TR/EN (YENİ `src/i18n.js` + expo-localization):** cihaz dili TR→TR yoksa EN; Profil > Ayarlar > Dil ile değiştir (SecureStore). `app/_layout.js` LanguageProvider; login + sekmeler yerelleşti. Profil'den ödeme-bağlama-rehberi linki kaldırıldı.
+
+### Önceki tur — NATIVE: adım sayar (pedometer) + push bildirimler (commit ea723af)
 - **Adım Sayar modülü (YENİ, gerçek pedometer):** `expo-sensors` Pedometer ile telefonun saydığı GERÇEK günlük adım. Customer (`src/modules/customer/Steps.js`): adım + hedef bar + km/kcal. Manage: günlük hedef. **Tracker'dan adım çıkarıldı** (artık sadece su/kalori). registry/MODULE_INFO(steps)/icons(walk) eklendi.
 - **Push bildirim sistemi (expo-notifications):** `src/notifications/setup.js` — izin + Expo push token kaydı (`/api/push/register` → push_tokens), su + randevu yerel hatırlatıcı. `(tabs)/_layout`'ta init+register. Booking randevu alınca yerel hatırlatıcı.
 - **Backend push** (`src/lib/push.js` Expo send + businessAdmins; DEPLOY EDİLDİ) — tetikleyiciler: katılım isteği→adminler, mesaj→karşı taraf, yeni randevu→adminler, program/ölçüm atandı→müşteri, üyelik onay→müşteri, randevu durumu→müşteri.
 - Deps: expo-sensors/notifications/device. app.json: notifications plugin + NSMotionUsageDescription. EAS APNs anahtarını otomatik kurar.
 - **Kalan tek faz:** IAP paketler (Dev/Dev+/Pro, [[yapp-pricing-tiers]]) — RevenueCat + ASC ürün + paywall + tier kilidi.
 
-### Önceki tur — ödeme kaldırma + tema/arka plan + kişiye özel program/ölçüm + yeni şablonlar + tier kararı (commit a616017, e22c4e2)
+### Daha eski tur — ödeme kaldırma + tema/arka plan + kişiye özel program/ölçüm + yeni şablonlar + tier kararı (commit a616017, e22c4e2)
 - **Ödeme komple kaldırıldı:** platform ücreti/fiyat modalı/ödeme-rehberi yok, publish bedava, payments modülü picker'dan + müşteri sekmelerinden gizli. **Ekip (staff) müşteriye gizli.** Mini app ana sayfadan adres/tel kalktı.
 - **Tema & Arka Plan editörü** (`app/business/[id].js` + YENİ `src/components/AppBackground.js`): 10 tema rengi + arka plan Düz/Desen(baloncuk/halka/nokta)/Özel foto → `theme_json`. Desen/foto Dev+/Pro'da olacak.
 - **Kişiye özel program (plans):** mini admin müşteri seçer → başlık+bölümler program atar (`createEntryFor` user_id). Müşteri kendine atananı akordeon görür.

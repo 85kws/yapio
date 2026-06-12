@@ -14,7 +14,7 @@ import { PATTERNS, Pattern } from '../../src/components/AppBackground';
 
 const ALL_MODULES = Object.keys(MODULE_INFO).filter((k) => k !== 'payments');
 const THEME_COLORS = ['#5B4BE7', '#E93D82', '#30A46C', '#0091FF', '#F76808', '#8B6914', '#1A1A2E', '#C4A35A', '#E5484D', '#4334C4'];
-const BG_COLORS = ['#FFFFFF', '#FAF7F2', '#F1F1F7', '#FDF2F8', '#F0FDF4', '#EFF6FF', '#FFF7ED', '#15151F'];
+const BG_COLORS = ['#FFFFFF', '#F1F3F5', '#FFE8CC', '#FFD3D9', '#D0E4FF', '#C3F0D8', '#E4D4FF', '#FFF3BF', '#FFC9A3', '#A5D8FF', '#1A1A2E', '#0B1020'];
 
 export default function ManageBusiness() {
   const router = useRouter();
@@ -273,15 +273,9 @@ export default function ManageBusiness() {
           <Ionicons name="chevron-forward" size={22} color={COLORS.muted} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={s.linkRow} onPress={() => router.push(`/manage/${id}/home`)}>
-          <Ionicons name="create-outline" size={20} color={theme} />
-          <Text style={s.linkText}>Ana Sayfayı Düzenle (basit)</Text>
-          <Ionicons name="chevron-forward" size={22} color={COLORS.muted} />
-        </TouchableOpacity>
-
         <TouchableOpacity style={s.linkRow} onPress={() => router.push(`/manage/${id}/canvas`)}>
           <Ionicons name="color-wand-outline" size={20} color={theme} />
-          <Text style={s.linkText}>Tasarla (Canva) — sürükle-bırak</Text>
+          <Text style={s.linkText}>Sayfayı Tasarla — sürükle bırak</Text>
           <Ionicons name="chevron-forward" size={22} color={COLORS.muted} />
         </TouchableOpacity>
 
