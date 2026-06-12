@@ -3,9 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getItems } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function Campaigns({ businessId, theme }) {
+  const { t } = useLang();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const load = useCallback(async () => {
@@ -14,7 +16,7 @@ export default function Campaigns({ businessId, theme }) {
   useEffect(() => { load(); }, [load]);
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
-  if (!items.length) return <View style={s.empty}><Ionicons name="megaphone-outline" size={48} color={COLORS.muted} /><Text style={s.emptyText}>Şu an aktif kampanya yok.</Text></View>;
+  if (!items.length) return <View style={s.empty}><Ionicons name="megaphone-outline" size={48} color={COLORS.muted} /><Text style={s.emptyText}>{t('no_campaigns')}</Text></View>;
 
   return (
     <ScrollView contentContainerStyle={s.wrap}>

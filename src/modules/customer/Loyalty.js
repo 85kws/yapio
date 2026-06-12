@@ -3,9 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, getEntries, createEntry } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function Loyalty({ businessId, theme }) {
+  const { t } = useLang();
   const [goal, setGoal] = useState(10);
   const [reward, setReward] = useState('');
   const [stamps, setStamps] = useState(0);
@@ -29,9 +31,9 @@ export default function Loyalty({ businessId, theme }) {
   return (
     <ScrollView contentContainerStyle={s.wrap}>
       <View style={[s.card, { backgroundColor: theme }]}>
-        <Text style={s.cardTitle}>Sadakat Kartım</Text>
+        <Text style={s.cardTitle}>{t('my_loyalty_card')}</Text>
         <Text style={s.cardCount}>{stamps} / {goal}</Text>
-        {reward ? <Text style={s.cardReward}>Ödül: {reward}</Text> : null}
+        {reward ? <Text style={s.cardReward}>{t('reward')}: {reward}</Text> : null}
       </View>
 
       <View style={s.dots}>
@@ -43,9 +45,9 @@ export default function Loyalty({ businessId, theme }) {
       </View>
 
       {done ? (
-        <View style={[s.banner, { backgroundColor: '#E7F7EF' }]}><Ionicons name="gift" size={22} color={COLORS.success} /><Text style={s.bannerText}>Tebrikler! Ödülünü almaya hak kazandın.</Text></View>
+        <View style={[s.banner, { backgroundColor: '#E7F7EF' }]}><Ionicons name="gift" size={22} color={COLORS.success} /><Text style={s.bannerText}>{t('loyalty_won')}</Text></View>
       ) : (
-        <Text style={s.note}>Damgalar işletme tarafından her ziyarette eklenir.</Text>
+        <Text style={s.note}>{t('loyalty_note')}</Text>
       )}
       <View style={{ height: 20 }} />
     </ScrollView>

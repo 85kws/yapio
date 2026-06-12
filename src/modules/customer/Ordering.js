@@ -3,11 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, getEntries, createEntry } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
-const STATUS = { new: 'Alındı', preparing: 'Hazırlanıyor', ready: 'Hazır', done: 'Teslim edildi' };
-
 export default function Ordering({ businessId, theme }) {
+  const { t } = useLang();
   const [items, setItems] = useState([]);
   const [cart, setCart] = useState({});
   const [orders, setOrders] = useState([]);
@@ -31,7 +31,7 @@ export default function Ordering({ businessId, theme }) {
   const order = async () => {
     if (!lines.length) return;
     await createEntry(businessId, 'ordering', { lines, total }, 'new');
-    setCart({}); Alert.alert('Sipariş alındı', `Toplam ${total} ₺. Ödemeyi teslimde / gel-al sırasında yaparsın.`); load();
+    setCart({}); Alert.alert(t('order_placed'), `${total} ₺ · ${t('pay_at_delivery')}`); load();
   };
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
@@ -40,21 +40,21 @@ export default function Ordering({ businessId, theme }) {
     <ScrollView contentContainerStyle={s.wrap}>
       {orders.length > 0 && (
         <View style={{ marginBottom: 18 }}>
-          <Text style={s.h}>Siparişlerim</Text>
+          <Text style={s.h}>{t('my_orders')}</Text>
           {orders.slice(0, 5).map((o) => (
             <View key={o.id} style={s.order}>
               <View style={{ flex: 1 }}>
                 <Text style={s.orderName}>{(o.data.lines || []).map((l) => `${l.qty}× ${l.name}`).join(', ')}</Text>
                 <Text style={s.orderMeta}>{o.data.total} ₺</Text>
               </View>
-              <View style={[s.pill, { backgroundColor: theme + '18' }]}><Text style={[s.pillText, { color: theme }]}>{STATUS[o.status] || o.status}</Text></View>
+              <View style={[s.pill, { backgroundColor: theme + '18' }]}><Text style={[s.pillText, { color: theme }]}>{t('ostat_' + o.status)}</Text></View>
             </View>
           ))}
         </View>
       )}
 
-      <Text style={s.h}>Menü</Text>
-      {items.length === 0 && <Text style={s.empty}>Ürün yok.</Text>}
+      <Text style={s.h}>{t('menu')}</Text>
+      {items.length === 0 && <Text style={s.empty}>{t('no_products')}</Text>}
       {items.map((it) => (
         <View key={it.id} style={s.row}>
           <View style={{ flex: 1 }}>
@@ -68,15 +68,15 @@ export default function Ordering({ businessId, theme }) {
               <TouchableOpacity onPress={() => inc(it.id)}><Ionicons name="add-circle" size={28} color={theme} /></TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity style={[s.addBtn, { borderColor: theme }]} onPress={() => inc(it.id)}><Text style={[s.addText, { color: theme }]}>Ekle</Text></TouchableOpacity>
+            <TouchableOpacity style={[s.addBtn, { borderColor: theme }]} onPress={() => inc(it.id)}><Text style={[s.addText, { color: theme }]}>{t('add')}</Text></TouchableOpacity>
           )}
         </View>
       ))}
-      {items.length > 0 ? <Text style={s.payNote}>Ödeme uygulamada alınmaz — siparişini ver, teslimde/gel-al sırasında öde.</Text> : null}
+      {items.length > 0 ? <Text style={s.payNote}>{t('pay_note')}</Text> : null}
       <View style={{ height: 90 }} />
       {lines.length > 0 && (
         <TouchableOpacity style={[s.orderBtn, { backgroundColor: theme }]} onPress={order}>
-          <Text style={s.orderBtnText}>Sipariş Ver · {total} ₺</Text>
+          <Text style={s.orderBtnText}>{t('place_order')} · {total} ₺</Text>
         </TouchableOpacity>
       )}
     </ScrollView>
