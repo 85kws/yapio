@@ -47,6 +47,8 @@ const STRINGS = {
     features: 'Özellikler', features_sub: "App'inde hangi modüller olsun?", saving: 'kaydediliyor',
     guide_link: 'Kılavuz · Nasıl kullanılır?', design_page: 'Sayfayı Tasarla — sürükle bırak', delete_business: 'İşletmeyi Sil',
     delete_q: 'silinsin mi?',
+    mod_booking: 'Randevu', mod_catalog: 'Menü / Katalog', mod_ordering: 'Sipariş', mod_campaigns: 'Kampanya', mod_loyalty: 'Sadakat', mod_subscriptions: 'Üyelik', mod_records: 'Ölçüm / Kayıt', mod_plans: 'Program', mod_tracker: 'Su & Kalori', mod_steps: 'Adım Sayar', mod_messaging: 'Mesaj', mod_push: 'Bildirim', mod_gallery: 'Galeri', mod_profile: 'Profil / Konum', mod_reviews: 'Yorumlar', mod_staff: 'Ekip',
+    home: 'Ana Sayfa', private_app: 'Özel uygulama', join_prompt: 'Bu uygulamayı kullanmak için işletmenin verdiği katılım kodunu gir.', join_code_ph: 'KATILIM KODU', join: 'Katıl', no_code_request: 'Kodum yok — katılım isteği gönder', request_sent: 'İsteğin gönderildi, onay bekleniyor.', request_sent_title: 'İstek gönderildi', request_sent_body: 'İşletme onayladığında erişebileceksin.', not_found: 'Bulunamadı', app_load_fail: 'App yüklenemedi',
   },
   en: {
     tagline: 'App store for businesses',
@@ -91,6 +93,8 @@ const STRINGS = {
     features: 'Features', features_sub: 'Which modules should your app have?', saving: 'saving',
     guide_link: 'Guide · How to use', design_page: 'Design Page — drag & drop', delete_business: 'Delete Business',
     delete_q: 'delete?',
+    mod_booking: 'Booking', mod_catalog: 'Menu / Catalog', mod_ordering: 'Ordering', mod_campaigns: 'Campaigns', mod_loyalty: 'Loyalty', mod_subscriptions: 'Membership', mod_records: 'Measurements', mod_plans: 'Programs', mod_tracker: 'Water & Calories', mod_steps: 'Step Counter', mod_messaging: 'Messages', mod_push: 'Notifications', mod_gallery: 'Gallery', mod_profile: 'Profile / Location', mod_reviews: 'Reviews', mod_staff: 'Team',
+    home: 'Home', private_app: 'Private app', join_prompt: 'Enter the join code given by the business to use this app.', join_code_ph: 'JOIN CODE', join: 'Join', no_code_request: "I don't have a code — send a join request", request_sent: 'Your request was sent, awaiting approval.', request_sent_title: 'Request sent', request_sent_body: 'You can access once the business approves.', not_found: 'Not found', app_load_fail: 'Could not load app',
   },
 };
 

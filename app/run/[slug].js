@@ -9,6 +9,7 @@ import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getAppBySlug, joinBusiness } from '../../src/api/client';
 import { COLORS } from '../../src/theme';
+import { useLang } from '../../src/i18n';
 import { moduleIcon, AppIcon } from '../../src/icons';
 import { MODULE_INFO } from '../../src/modules';
 import { CUSTOMER } from '../../src/modules/registry';
@@ -20,6 +21,7 @@ const SCREEN_W = Dimensions.get('window').width;
 
 export default function RunApp() {
   const router = useRouter();
+  const { t } = useLang();
   const { slug } = useLocalSearchParams();
   const [data, setData] = useState(null);
   const [tab, setTab] = useState('__home');
@@ -55,7 +57,7 @@ export default function RunApp() {
       const d = await getAppBySlug(slug);
       setData(d);
     } catch (e) {
-      Alert.alert('Bulunamadı', e?.response?.data?.error || 'App yüklenemedi');
+      Alert.alert(t('not_found'), e?.response?.data?.error || t('app_load_fail'));
       router.back();
     }
   }, [slug]);
@@ -78,8 +80,8 @@ export default function RunApp() {
     try {
       const status = await joinBusiness(biz.id, withCode ? code.trim() : '');
       if (status === 'active') { await load(); }
-      else Alert.alert('İstek gönderildi', 'İşletme onayladığında erişebileceksin.');
-    } catch (e) { Alert.alert('Hata', e?.response?.data?.error || 'Olmadı'); }
+      else Alert.alert(t('request_sent_title'), t('request_sent_body'));
+    } catch (e) { Alert.alert(t('error'), e?.response?.data?.error || t('error')); }
     finally { setJoining(false); }
   };
 
@@ -92,14 +94,14 @@ export default function RunApp() {
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 30 }}>
             <AppIcon sectorKey={biz.sector_key} color={theme} size={88} radius={22} logo={biz.logo_url} />
             <Text style={s.lockTitle}>{biz.name}</Text>
-            <View style={s.lockBadge}><Ionicons name="lock-closed" size={14} color={COLORS.muted} /><Text style={s.lockBadgeText}>Özel uygulama</Text></View>
-            <Text style={s.lockDesc}>Bu uygulamayı kullanmak için işletmenin verdiği katılım kodunu gir.</Text>
-            <TextInput style={s.codeInput} value={code} onChangeText={setCode} placeholder="KATILIM KODU" placeholderTextColor="#B0B0C0" autoCapitalize="characters" textAlign="center" />
+            <View style={s.lockBadge}><Ionicons name="lock-closed" size={14} color={COLORS.muted} /><Text style={s.lockBadgeText}>{t('private_app')}</Text></View>
+            <Text style={s.lockDesc}>{t('join_prompt')}</Text>
+            <TextInput style={s.codeInput} value={code} onChangeText={setCode} placeholder={t('join_code_ph')} placeholderTextColor="#B0B0C0" autoCapitalize="characters" textAlign="center" />
             <TouchableOpacity style={[s.joinBtn, { backgroundColor: theme }]} onPress={() => join(true)} disabled={joining}>
-              {joining ? <ActivityIndicator color="#fff" /> : <Text style={s.joinText}>Katıl</Text>}
+              {joining ? <ActivityIndicator color="#fff" /> : <Text style={s.joinText}>{t('join')}</Text>}
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => join(false)}><Text style={[s.requestLink, { color: theme }]}>Kodum yok — katılım isteği gönder</Text></TouchableOpacity>
-            {data.member_status === 'pending' ? <Text style={s.pendingNote}>İsteğin gönderildi, onay bekleniyor.</Text> : null}
+            <TouchableOpacity onPress={() => join(false)}><Text style={[s.requestLink, { color: theme }]}>{t('no_code_request')}</Text></TouchableOpacity>
+            {data.member_status === 'pending' ? <Text style={s.pendingNote}>{t('request_sent')}</Text> : null}
           </View>
         </SafeAreaView>
       </View>
@@ -110,8 +112,8 @@ export default function RunApp() {
   // Müşteriye gösterilmeyen modüller: ekip (sadece yönetim) + ödeme (kaldırıldı)
   const HIDDEN = ['staff', 'payments'];
   const tabs = [
-    { key: '__home', label: 'Ana Sayfa', icon: 'home' },
-    ...modules.filter((m) => MODULE_INFO[m] && !HIDDEN.includes(m)).map((m) => ({ key: m, label: MODULE_INFO[m].label, icon: moduleIcon(m) })),
+    { key: '__home', label: t('home'), icon: 'home' },
+    ...modules.filter((m) => MODULE_INFO[m] && !HIDDEN.includes(m)).map((m) => ({ key: m, label: t('mod_' + m), icon: moduleIcon(m) })),
   ];
   tabsRef.current = tabs;
   const curIdx = tabs.findIndex((t) => t.key === tab);
@@ -139,7 +141,7 @@ export default function RunApp() {
           ) : (
             <View style={s.stub}>
               <View style={[s.stubIcon, { backgroundColor: theme }]}><Ionicons name={moduleIcon(tab)} size={40} color="#fff" /></View>
-              <Text style={s.stubTitle}>{MODULE_INFO[tab].label}</Text>
+              <Text style={s.stubTitle}>{t('mod_' + tab)}</Text>
               <Text style={s.stubDesc}>{MODULE_INFO[tab].detail}</Text>
             </View>
           )}

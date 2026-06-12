@@ -252,7 +252,7 @@ export default function ManageBusiness() {
             <View key={key} style={s.modRow}>
               <View style={s.modIconBox}><Ionicons name={moduleIcon(key)} size={20} color={theme} /></View>
               <TouchableOpacity style={s.modLabelWrap} onPress={() => setInfoModule(key)}>
-                <Text style={s.modLabel}>{MODULE_INFO[key].label}</Text>
+                <Text style={s.modLabel}>{t('mod_' + key)}</Text>
                 <Ionicons name="information-circle-outline" size={16} color={COLORS.muted} />
               </TouchableOpacity>
               {enabled.includes(key) && (
