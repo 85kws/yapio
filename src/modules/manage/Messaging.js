@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getEntries, createEntryFor } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 const fmtTime = (iso) => {
@@ -14,6 +15,7 @@ const fmtTime = (iso) => {
 };
 
 export default function ManageMessaging({ businessId, theme }) {
+  const { t } = useLang();
   const [all, setAll] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(null);
@@ -62,7 +64,7 @@ export default function ManageMessaging({ businessId, theme }) {
           })}
         </ScrollView>
         <View style={s.bar}>
-          <TextInput style={s.input} value={text} onChangeText={setText} placeholder="Yanıt yaz..." placeholderTextColor="#B0B0C0" />
+          <TextInput style={s.input} value={text} onChangeText={setText} placeholder={t('reply_ph')} placeholderTextColor="#B0B0C0" />
           <TouchableOpacity style={[s.send, { backgroundColor: theme }]} onPress={reply}><Ionicons name="send" size={20} color="#fff" /></TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -74,10 +76,10 @@ export default function ManageMessaging({ businessId, theme }) {
     <View style={{ flex: 1 }}>
       <View style={s.searchWrap}>
         <Ionicons name="search" size={18} color={COLORS.muted} />
-        <TextInput style={s.search} value={q} onChangeText={setQ} placeholder="Kişi ara..." placeholderTextColor="#B0B0C0" />
+        <TextInput style={s.search} value={q} onChangeText={setQ} placeholder={t('search_person')} placeholderTextColor="#B0B0C0" />
       </View>
       <ScrollView contentContainerStyle={{ padding: 12 }}>
-        {list.length === 0 && <Text style={s.empty}>Henüz mesaj yok. Müşteriler yazınca burada görünür.</Text>}
+        {list.length === 0 && <Text style={s.empty}>{t('no_messages_yet')}</Text>}
         {shown.map((t) => {
           const last = t.msgs[0];
           return (
@@ -85,7 +87,7 @@ export default function ManageMessaging({ businessId, theme }) {
               <View style={[s.avatar, { backgroundColor: theme }]}><Text style={s.avatarText}>{(t.name || '?')[0].toUpperCase()}</Text></View>
               <View style={{ flex: 1 }}>
                 <Text style={s.tName}>{t.name || 'Müşteri'}</Text>
-                <Text style={s.tLast} numberOfLines={1}>{last?.data.from === 'seller' ? 'Sen: ' : ''}{last?.data.text}</Text>
+                <Text style={s.tLast} numberOfLines={1}>{last?.data.from === 'seller' ? t('you_prefix') : ''}{last?.data.text}</Text>
               </View>
               <Text style={s.tTime}>{fmtTime(last?.created_at)}</Text>
             </TouchableOpacity>

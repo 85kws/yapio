@@ -2,13 +2,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { getEntries, updateEntry } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 const FLOW = { new: 'preparing', preparing: 'ready', ready: 'done' };
-const LABEL = { new: 'Hazırlamaya Başla', preparing: 'Hazır', ready: 'Teslim Edildi', done: 'Tamamlandı' };
-const STATUS = { new: 'Yeni', preparing: 'Hazırlanıyor', ready: 'Hazır', done: 'Teslim' };
 
 export default function ManageOrdering({ businessId, theme }) {
+  const { t } = useLang();
+  const LABEL = { new: t('oact_start'), preparing: t('ostat_ready'), ready: t('ostat_done') };
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,16 +25,16 @@ export default function ManageOrdering({ businessId, theme }) {
   const active = orders.filter((o) => o.status !== 'done');
   return (
     <ScrollView contentContainerStyle={s.wrap}>
-      <Text style={s.h}>Aktif Siparişler ({active.length})</Text>
-      {active.length === 0 && <Text style={s.empty}>Aktif sipariş yok.</Text>}
+      <Text style={s.h}>{t('active_orders')} ({active.length})</Text>
+      {active.length === 0 && <Text style={s.empty}>{t('no_active_orders')}</Text>}
       {active.map((o) => (
         <View key={o.id} style={s.card}>
           <View style={s.cardTop}>
-            <Text style={s.who}>{o.user_name || 'Müşteri'}</Text>
-            <View style={[s.pill, { backgroundColor: theme + '18' }]}><Text style={[s.pillText, { color: theme }]}>{STATUS[o.status]}</Text></View>
+            <Text style={s.who}>{o.user_name || t('user')}</Text>
+            <View style={[s.pill, { backgroundColor: theme + '18' }]}><Text style={[s.pillText, { color: theme }]}>{t('ostat_' + o.status)}</Text></View>
           </View>
           {(o.data.lines || []).map((l, i) => <Text key={i} style={s.line}>{l.qty}× {l.name} — {l.price * l.qty} ₺</Text>)}
-          <Text style={s.total}>Toplam: {o.data.total} ₺</Text>
+          <Text style={s.total}>{t('total_label')}: {o.data.total} ₺</Text>
           {FLOW[o.status] && (
             <TouchableOpacity style={[s.btn, { backgroundColor: theme }]} onPress={() => advance(o)}><Text style={s.btnText}>{LABEL[o.status]}</Text></TouchableOpacity>
           )}

@@ -29,7 +29,7 @@ export default function ManageSubscriptions({ businessId, theme }) {
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
   return (
     <ScrollView contentContainerStyle={s.wrap}>
-      <Text style={s.h}>Planlar</Text>
+      <Text style={s.h}>{t('plans_h')}</Text>
       {plans.map((p) => (
         <View key={p.id} style={s.row}>
           <View style={{ flex: 1 }}><Text style={s.name}>{p.data.name}</Text><Text style={s.meta}>{p.data.price} ₺ / {p.data.period}</Text></View>
@@ -37,20 +37,20 @@ export default function ManageSubscriptions({ businessId, theme }) {
         </View>
       ))}
       <View style={s.addBox}>
-        <TextInput style={[s.input, { flex: 2 }]} value={f.name} onChangeText={(v) => setF({ ...f, name: v })} placeholder="Plan adı" placeholderTextColor="#B0B0C0" />
+        <TextInput style={[s.input, { flex: 2 }]} value={f.name} onChangeText={(v) => setF({ ...f, name: v })} placeholder={t('plan_name_ph')} placeholderTextColor="#B0B0C0" />
         <TextInput style={[s.input, { flex: 1 }]} value={f.price} onChangeText={(v) => setF({ ...f, price: v })} placeholder="₺" keyboardType="number-pad" placeholderTextColor="#B0B0C0" />
         <TouchableOpacity style={[s.addBtn, { backgroundColor: theme }]} onPress={add}><Ionicons name="add" size={22} color="#fff" /></TouchableOpacity>
       </View>
 
-      <Text style={s.h}>Üyeler ({members.length})</Text>
-      {members.length === 0 && <Text style={s.empty}>Henüz üye yok.</Text>}
+      <Text style={s.h}>{t('members_label')} ({members.length})</Text>
+      {members.length === 0 && <Text style={s.empty}>{t('no_members')}</Text>}
       {members.map((m) => (
         <View key={m.id} style={s.row}>
           <View style={{ flex: 1 }}>
-            <Text style={s.name}>{m.user_name || 'Üye'} · #{m.id}</Text>
-            <Text style={s.meta}>{m.data.plan_name} · {m.data.checkins || 0} giriş</Text>
+            <Text style={s.name}>{m.user_name || t('member')} · #{m.id}</Text>
+            <Text style={s.meta}>{m.data.plan_name} · {m.data.checkins || 0} {t('entries_word')}</Text>
           </View>
-          <TouchableOpacity style={[s.checkBtn, { backgroundColor: theme }]} onPress={() => checkin(m)}><Text style={s.checkText}>Giriş +1</Text></TouchableOpacity>
+          <TouchableOpacity style={[s.checkBtn, { backgroundColor: theme }]} onPress={() => checkin(m)}><Text style={s.checkText}>{t('checkin_plus')}</Text></TouchableOpacity>
         </View>
       ))}
       <View style={{ height: 30 }} />
