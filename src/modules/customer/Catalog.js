@@ -2,9 +2,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { getItems } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function Catalog({ businessId, theme }) {
+  const { t } = useLang();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,10 +16,10 @@ export default function Catalog({ businessId, theme }) {
   useEffect(() => { load(); }, [load]);
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
-  if (items.length === 0) return <View style={s.empty}><Text style={s.emptyText}>Menü henüz hazırlanıyor.</Text></View>;
+  if (items.length === 0) return <View style={s.empty}><Text style={s.emptyText}>{t('menu_preparing')}</Text></View>;
 
   const cats = {};
-  items.forEach((it) => { const c = it.data.category || 'Genel'; (cats[c] = cats[c] || []).push(it); });
+  items.forEach((it) => { const c = it.data.category || t('general'); (cats[c] = cats[c] || []).push(it); });
 
   return (
     <ScrollView contentContainerStyle={s.wrap}>

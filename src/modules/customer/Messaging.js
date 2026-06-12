@@ -3,9 +3,11 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getEntries, createEntry } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function Messaging({ businessId, theme }) {
+  const { t } = useLang();
   const [msgs, setMsgs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState('');
@@ -31,7 +33,7 @@ export default function Messaging({ businessId, theme }) {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
       <ScrollView ref={ref} contentContainerStyle={s.wrap} onContentSizeChange={() => ref.current?.scrollToEnd({ animated: true })}>
-        {msgs.length === 0 && <Text style={s.empty}>İşletmeye ilk mesajını yaz.</Text>}
+        {msgs.length === 0 && <Text style={s.empty}>{t('write_first_message')}</Text>}
         {msgs.map((m) => {
           const mine = m.data.from === 'customer';
           return (
@@ -42,7 +44,7 @@ export default function Messaging({ businessId, theme }) {
         })}
       </ScrollView>
       <View style={s.bar}>
-        <TextInput style={s.input} value={text} onChangeText={setText} placeholder="Mesaj yaz..." placeholderTextColor="#B0B0C0" />
+        <TextInput style={s.input} value={text} onChangeText={setText} placeholder={t('message_ph')} placeholderTextColor="#B0B0C0" />
         <TouchableOpacity style={[s.send, { backgroundColor: theme }]} onPress={send}><Ionicons name="send" size={20} color="#fff" /></TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

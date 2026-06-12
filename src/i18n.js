@@ -63,6 +63,8 @@ const STRINGS = {
     fld_weight: 'Kilo (kg)', fld_fat: 'Yağ %', fld_fat_mass: 'Yağ Kütlesi (kg)', fld_muscle: 'Kas (kg)', fld_water: 'Su %', fld_bone: 'Kemik (kg)', fld_bmi: 'BMI', fld_visceral: 'İç Yağ', fld_metabolic_age: 'Metabolik Yaş', fld_bmr: 'Bazal Metabolizma', fld_protein: 'Protein %', fld_mineral: 'Mineral', fld_waist: 'Bel (cm)', fld_hip: 'Kalça (cm)', fld_chest: 'Göğüs (cm)', fld_arm: 'Kol (cm)',
     working_hours: 'Çalışma Saatleri', open_time: 'Açılış', close_time: 'Kapanış', services: 'Hizmetler', service_name_ph: 'Hizmet adı', appointments: 'Randevular', no_appointments: 'Henüz randevu yok.', cancel_short: 'İptal', confirmed_short: '✓ onaylı', hours_saved: 'Çalışma saatleri',
     my_appointments: 'Randevularım', select_service: 'Hizmet seç', no_service_yet: 'Henüz hizmet eklenmemiş.', select_date: 'Tarih seç', available_time: 'Uygun saat', no_slot: 'Bu güne uygun saat yok.', booked: 'Randevu alındı', booking_failed: 'Randevu alınamadı', cancel_appt_q: 'Randevu iptal edilsin mi?', cancel_yes: 'İptal Et', free: 'boş', full_closed: 'dolu/kapalı', confirmed: 'onaylandı', dk: 'dk',
+    menu_preparing: 'Menü henüz hazırlanıyor.', products: 'Ürünler', new_product: 'Yeni ürün', product_name_ph: 'Ürün adı', price_ph: 'Fiyat ₺', category_ph: 'Kategori', desc_opt_ph: 'Açıklama (ops.)', general: 'Genel',
+    write_first_message: 'İşletmeye ilk mesajını yaz.', message_ph: 'Mesaj yaz...',
   },
   en: {
     tagline: 'App store for businesses',
@@ -123,6 +125,8 @@ const STRINGS = {
     fld_weight: 'Weight (kg)', fld_fat: 'Fat %', fld_fat_mass: 'Fat Mass (kg)', fld_muscle: 'Muscle (kg)', fld_water: 'Water %', fld_bone: 'Bone (kg)', fld_bmi: 'BMI', fld_visceral: 'Visceral Fat', fld_metabolic_age: 'Metabolic Age', fld_bmr: 'BMR', fld_protein: 'Protein %', fld_mineral: 'Mineral', fld_waist: 'Waist (cm)', fld_hip: 'Hip (cm)', fld_chest: 'Chest (cm)', fld_arm: 'Arm (cm)',
     working_hours: 'Working Hours', open_time: 'Open', close_time: 'Close', services: 'Services', service_name_ph: 'Service name', appointments: 'Appointments', no_appointments: 'No appointments yet.', cancel_short: 'Cancel', confirmed_short: '✓ confirmed', hours_saved: 'Working hours',
     my_appointments: 'My Appointments', select_service: 'Select service', no_service_yet: 'No services added yet.', select_date: 'Select date', available_time: 'Available time', no_slot: 'No times available this day.', booked: 'Appointment booked', booking_failed: 'Could not book', cancel_appt_q: 'Cancel appointment?', cancel_yes: 'Cancel', free: 'free', full_closed: 'full/closed', confirmed: 'confirmed', dk: 'min',
+    menu_preparing: 'The menu is being prepared.', products: 'Products', new_product: 'New product', product_name_ph: 'Product name', price_ph: 'Price ₺', category_ph: 'Category', desc_opt_ph: 'Description (opt.)', general: 'General',
+    write_first_message: 'Write your first message to the business.', message_ph: 'Type a message...',
   },
 };
 

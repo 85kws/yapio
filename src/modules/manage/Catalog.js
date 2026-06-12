@@ -3,9 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, createItem, deleteItem } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function ManageCatalog({ businessId, theme }) {
+  const { t } = useLang();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [f, setF] = useState({ name: '', price: '', category: '', desc: '' });
@@ -25,7 +27,7 @@ export default function ManageCatalog({ businessId, theme }) {
 
   return (
     <ScrollView contentContainerStyle={s.wrap}>
-      <Text style={s.h}>Ürünler ({items.length})</Text>
+      <Text style={s.h}>{t('products')} ({items.length})</Text>
       {items.map((it) => (
         <View key={it.id} style={s.row}>
           <View style={{ flex: 1 }}>
@@ -36,14 +38,14 @@ export default function ManageCatalog({ businessId, theme }) {
         </View>
       ))}
 
-      <Text style={s.h}>Yeni ürün</Text>
-      <TextInput style={s.input} value={f.name} onChangeText={(v) => setF({ ...f, name: v })} placeholder="Ürün adı" placeholderTextColor="#B0B0C0" />
+      <Text style={s.h}>{t('new_product')}</Text>
+      <TextInput style={s.input} value={f.name} onChangeText={(v) => setF({ ...f, name: v })} placeholder={t('product_name_ph')} placeholderTextColor="#B0B0C0" />
       <View style={{ flexDirection: 'row', gap: 8 }}>
-        <TextInput style={[s.input, { flex: 1 }]} value={f.price} onChangeText={(v) => setF({ ...f, price: v })} placeholder="Fiyat ₺" keyboardType="number-pad" placeholderTextColor="#B0B0C0" />
-        <TextInput style={[s.input, { flex: 1 }]} value={f.category} onChangeText={(v) => setF({ ...f, category: v })} placeholder="Kategori" placeholderTextColor="#B0B0C0" />
+        <TextInput style={[s.input, { flex: 1 }]} value={f.price} onChangeText={(v) => setF({ ...f, price: v })} placeholder={t('price_ph')} keyboardType="number-pad" placeholderTextColor="#B0B0C0" />
+        <TextInput style={[s.input, { flex: 1 }]} value={f.category} onChangeText={(v) => setF({ ...f, category: v })} placeholder={t('category_ph')} placeholderTextColor="#B0B0C0" />
       </View>
-      <TextInput style={s.input} value={f.desc} onChangeText={(v) => setF({ ...f, desc: v })} placeholder="Açıklama (ops.)" placeholderTextColor="#B0B0C0" />
-      <TouchableOpacity style={[s.addBtn, { backgroundColor: theme }]} onPress={add}><Ionicons name="add" size={20} color="#fff" /><Text style={s.addText}>Ekle</Text></TouchableOpacity>
+      <TextInput style={s.input} value={f.desc} onChangeText={(v) => setF({ ...f, desc: v })} placeholder={t('desc_opt_ph')} placeholderTextColor="#B0B0C0" />
+      <TouchableOpacity style={[s.addBtn, { backgroundColor: theme }]} onPress={add}><Ionicons name="add" size={20} color="#fff" /><Text style={s.addText}>{t('add')}</Text></TouchableOpacity>
       <View style={{ height: 30 }} />
     </ScrollView>
   );
