@@ -10,6 +10,7 @@ import { COLORS, SIZES } from '../../src/theme';
 import { AppIcon, moduleIcon } from '../../src/icons';
 import { MODULE_INFO } from '../../src/modules';
 import ModuleInfoModal from '../../src/components/ModuleInfoModal';
+import { PATTERNS, Pattern } from '../../src/components/AppBackground';
 
 const ALL_MODULES = Object.keys(MODULE_INFO).filter((k) => k !== 'payments');
 const THEME_COLORS = ['#5B4BE7', '#E93D82', '#30A46C', '#0091FF', '#F76808', '#8B6914', '#1A1A2E', '#C4A35A', '#E5484D', '#4334C4'];
@@ -26,6 +27,7 @@ export default function ManageBusiness() {
   const [uploading, setUploading] = useState(false);
   const [bgUploading, setBgUploading] = useState(false);
   const [themeJson, setThemeJson] = useState({});
+  const [hex, setHex] = useState('');
   const [name, setName] = useState('');
 
   const load = useCallback(async () => {
@@ -151,6 +153,13 @@ export default function ManageBusiness() {
             </TouchableOpacity>
           ))}
         </View>
+        <View style={s.hexRow}>
+          <Text style={s.hexHash}>#</Text>
+          <TextInput style={s.hexInput} value={hex} onChangeText={(v) => setHex(v.replace('#', '').slice(0, 6))} placeholder={(themeJson.color || theme).replace('#', '')} placeholderTextColor="#B0B0C0" autoCapitalize="characters" autoCorrect={false} />
+          <TouchableOpacity style={[s.hexBtn, { backgroundColor: theme }]} onPress={() => { const h = hex.trim(); if (/^[0-9a-fA-F]{6}$/.test(h)) { saveTheme({ color: '#' + h.toUpperCase() }); setHex(''); } else Alert.alert('Geçersiz kod', '6 haneli renk kodu gir (örn. 5B4BE7).'); }}>
+            <Text style={s.hexBtnText}>Uygula</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={s.miniLabel}>Arka plan</Text>
         <View style={s.segment}>
           {[['solid', 'Düz Renk'], ['pattern', 'Desen'], ['photo', 'Foto']].map(([v, l]) => (
@@ -160,12 +169,19 @@ export default function ManageBusiness() {
           ))}
         </View>
         {(themeJson.bg_type === 'pattern') ? (
-          <View style={s.chipRow}>
-            {[['bubbles', 'Baloncuk'], ['rings', 'Halka'], ['dots', 'Nokta']].map(([v, l]) => (
-              <TouchableOpacity key={v} style={[s.chip, (themeJson.bg_pattern || 'bubbles') === v && { backgroundColor: theme, borderColor: theme }]} onPress={() => saveTheme({ bg_pattern: v })}>
-                <Text style={[s.chipText, (themeJson.bg_pattern || 'bubbles') === v && { color: '#fff' }]}>{l}</Text>
-              </TouchableOpacity>
-            ))}
+          <View style={s.patternGrid}>
+            {PATTERNS.map((p) => {
+              const on = (themeJson.bg_pattern || 'bubbles') === p.key;
+              return (
+                <TouchableOpacity key={p.key} style={[s.patternTile, on && { borderColor: theme, borderWidth: 2 }]} onPress={() => saveTheme({ bg_pattern: p.key })} activeOpacity={0.8}>
+                  <View style={[s.patternPrev, { backgroundColor: themeJson.bg_color || '#fff' }]}>
+                    <Pattern name={p.key} color={theme} scale={0.42} />
+                    {on ? <View style={[s.patternCheck, { backgroundColor: theme }]}><Ionicons name="checkmark" size={12} color="#fff" /></View> : null}
+                  </View>
+                  <Text style={s.patternName}>{p.name}</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         ) : themeJson.bg_type === 'photo' ? (
           <TouchableOpacity style={[s.bgPhotoBtn, { borderColor: theme }]} onPress={pickBgPhoto} disabled={bgUploading}>
@@ -301,6 +317,16 @@ const s = StyleSheet.create({
   bgPhotoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1.5, borderRadius: 12, paddingVertical: 13, marginTop: 10 },
   bgPhotoText: { fontWeight: '700' },
   bgNote: { fontSize: 12, color: COLORS.muted, marginTop: 8 },
+  hexRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 6 },
+  hexHash: { fontSize: 18, fontWeight: '800', color: COLORS.muted },
+  hexInput: { flex: 1, backgroundColor: '#fff', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16, color: COLORS.text, borderWidth: 1, borderColor: COLORS.border, letterSpacing: 1 },
+  hexBtn: { paddingHorizontal: 16, paddingVertical: 11, borderRadius: 10 },
+  hexBtnText: { color: '#fff', fontWeight: '800' },
+  patternGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  patternTile: { width: '48%', marginBottom: 12, borderRadius: 12, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden', backgroundColor: '#fff' },
+  patternPrev: { height: 96, overflow: 'hidden' },
+  patternCheck: { position: 'absolute', top: 6, right: 6, width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  patternName: { fontSize: 13, fontWeight: '700', color: COLORS.text, textAlign: 'center', paddingVertical: 8 },
   accessBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 14, marginTop: 10 },
   accessLabel: { fontSize: 12, color: COLORS.muted, fontWeight: '600' },
   accessCode: { fontSize: 22, fontWeight: '900', letterSpacing: 2, marginTop: 2 },
