@@ -49,6 +49,12 @@ const STRINGS = {
     delete_q: 'silinsin mi?',
     mod_booking: 'Randevu', mod_catalog: 'Menü / Katalog', mod_ordering: 'Sipariş', mod_campaigns: 'Kampanya', mod_loyalty: 'Sadakat', mod_subscriptions: 'Üyelik', mod_records: 'Ölçüm / Kayıt', mod_plans: 'Program', mod_tracker: 'Su & Kalori', mod_steps: 'Adım Sayar', mod_messaging: 'Mesaj', mod_push: 'Bildirim', mod_gallery: 'Galeri', mod_profile: 'Profil / Konum', mod_reviews: 'Yorumlar', mod_staff: 'Ekip',
     home: 'Ana Sayfa', private_app: 'Özel uygulama', join_prompt: 'Bu uygulamayı kullanmak için işletmenin verdiği katılım kodunu gir.', join_code_ph: 'KATILIM KODU', join: 'Katıl', no_code_request: 'Kodum yok — katılım isteği gönder', request_sent: 'İsteğin gönderildi, onay bekleniyor.', request_sent_title: 'İstek gönderildi', request_sent_body: 'İşletme onayladığında erişebileceksin.', not_found: 'Bulunamadı', app_load_fail: 'App yüklenemedi',
+    open_account: 'Hesap Aç', open_account_hint: 'Danışan/çalışan için kullanıcı adı + şifre oluştur, bilgileri kişiye ver. Kişi "Giriş" ile girip uygulamanı kullanır.',
+    username_ph: 'Kullanıcı adı (örn. ali)', display_name_ph: 'Görünen ad (opsiyonel, örn. Ali Kaya)', password_min_ph: 'Şifre (en az 4)', create_account: 'Hesap Oluştur',
+    username_label: 'Kullanıcı adı', password_label: 'Şifre', username_min: 'En az 2 karakter.', password_min: 'En az 4 karakter.',
+    account_created: 'Hesap açıldı', give_to_person: 'Bu bilgileri kişiye ver:', login_instr: 'Giriş ekranından "Giriş" ile bu bilgilerle girip uygulamanı kullanabilir.',
+    failed: 'Olmadı', account_create_fail: 'Hesap açılamadı', code_alt: 'Alternatif: müşterilerine bu kodu ver; girince otomatik üye olurlar.',
+    pending_requests: 'Bekleyen İstekler', no_pending: 'Bekleyen istek yok.', approve: 'Onayla', active_members: 'Aktif Üyeler', no_members: 'Henüz üye yok.',
   },
   en: {
     tagline: 'App store for businesses',
@@ -95,6 +101,12 @@ const STRINGS = {
     delete_q: 'delete?',
     mod_booking: 'Booking', mod_catalog: 'Menu / Catalog', mod_ordering: 'Ordering', mod_campaigns: 'Campaigns', mod_loyalty: 'Loyalty', mod_subscriptions: 'Membership', mod_records: 'Measurements', mod_plans: 'Programs', mod_tracker: 'Water & Calories', mod_steps: 'Step Counter', mod_messaging: 'Messages', mod_push: 'Notifications', mod_gallery: 'Gallery', mod_profile: 'Profile / Location', mod_reviews: 'Reviews', mod_staff: 'Team',
     home: 'Home', private_app: 'Private app', join_prompt: 'Enter the join code given by the business to use this app.', join_code_ph: 'JOIN CODE', join: 'Join', no_code_request: "I don't have a code — send a join request", request_sent: 'Your request was sent, awaiting approval.', request_sent_title: 'Request sent', request_sent_body: 'You can access once the business approves.', not_found: 'Not found', app_load_fail: 'Could not load app',
+    open_account: 'Open Account', open_account_hint: 'Create a username + password for a client/staff and give them the credentials. They sign in with "Sign In" and use your app.',
+    username_ph: 'Username (e.g. ali)', display_name_ph: 'Display name (optional, e.g. Ali Kaya)', password_min_ph: 'Password (min 4)', create_account: 'Create Account',
+    username_label: 'Username', password_label: 'Password', username_min: 'At least 2 characters.', password_min: 'At least 4 characters.',
+    account_created: 'Account created', give_to_person: 'Give these credentials to the person:', login_instr: 'They can sign in with these on the login screen and use your app.',
+    failed: 'Failed', account_create_fail: 'Could not create account', code_alt: 'Alternative: share this code with customers; they join automatically.',
+    pending_requests: 'Pending Requests', no_pending: 'No pending requests.', approve: 'Approve', active_members: 'Active Members', no_members: 'No members yet.',
   },
 };
 

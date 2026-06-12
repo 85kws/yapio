@@ -6,10 +6,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getBusiness, getMembers, memberAction, createMember } from '../../src/api/client';
+import { useLang } from '../../src/i18n';
 import { COLORS, SIZES } from '../../src/theme';
 
 export default function Members() {
   const router = useRouter();
+  const { t } = useLang();
   const { id } = useLocalSearchParams();
   const [biz, setBiz] = useState(null);
   const [members, setMembers] = useState([]);
@@ -30,16 +32,16 @@ export default function Members() {
   const act = async (userId, action) => { await memberAction(id, userId, action); load(); };
 
   const createAccount = async () => {
-    if (uname.trim().length < 2) return Alert.alert('Kullanıcı adı', 'En az 2 karakter.');
-    if (pass.length < 4) return Alert.alert('Şifre', 'En az 4 karakter.');
+    if (uname.trim().length < 2) return Alert.alert(t('username_label'), t('username_min'));
+    if (pass.length < 4) return Alert.alert(t('password_label'), t('password_min'));
     setBusy(true);
     try {
       await createMember(id, uname.trim(), pass, display.trim());
       const u = uname.trim(); const p = pass;
       setUname(''); setDisplay(''); setPass('');
       await load();
-      Alert.alert('Hesap açıldı', `Bu bilgileri kişiye ver:\n\nKullanıcı adı: ${u}\nŞifre: ${p}\n\nGiriş ekranından "Giriş" ile bu bilgilerle girip uygulamanı kullanabilir.`);
-    } catch (e) { Alert.alert('Olmadı', e?.response?.data?.error || 'Hesap açılamadı'); }
+      Alert.alert(t('account_created'), `${t('give_to_person')}\n\n${t('username_label')}: ${u}\n${t('password_label')}: ${p}\n\n${t('login_instr')}`);
+    } catch (e) { Alert.alert(t('failed'), e?.response?.data?.error || t('account_create_fail')); }
     finally { setBusy(false); }
   };
 
@@ -50,49 +52,49 @@ export default function Members() {
     <SafeAreaView style={s.safe} edges={['top']}>
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={22} color={COLORS.primary} /><Text style={s.back}>Geri</Text>
+          <Ionicons name="chevron-back" size={22} color={COLORS.primary} /><Text style={s.back}>{t('back')}</Text>
         </TouchableOpacity>
       </View>
       {!biz ? <ActivityIndicator style={{ marginTop: 40 }} color={theme} /> : (
         <ScrollView contentContainerStyle={{ padding: SIZES.pad, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
-          <Text style={s.title}>Kullanıcılar</Text>
+          <Text style={s.title}>{t('users')}</Text>
 
           {/* Hesap aç — mini admin danışan/çalışan hesabı oluşturur */}
           <View style={s.createBox}>
-            <Text style={s.createTitle}>Hesap Aç</Text>
-            <Text style={s.createHint}>Danışan/çalışan için kullanıcı adı + şifre oluştur, bilgileri kişiye ver. Kişi "Giriş" ile girip uygulamanı kullanır.</Text>
-            <TextInput style={s.input} value={uname} onChangeText={setUname} placeholder="Kullanıcı adı (örn. ali)" placeholderTextColor="#B0B0C0" autoCapitalize="none" autoCorrect={false} />
-            <TextInput style={s.input} value={display} onChangeText={setDisplay} placeholder="Görünen ad (opsiyonel, örn. Ali Kaya)" placeholderTextColor="#B0B0C0" />
-            <TextInput style={s.input} value={pass} onChangeText={setPass} placeholder="Şifre (en az 4)" placeholderTextColor="#B0B0C0" autoCapitalize="none" />
+            <Text style={s.createTitle}>{t('open_account')}</Text>
+            <Text style={s.createHint}>{t('open_account_hint')}</Text>
+            <TextInput style={s.input} value={uname} onChangeText={setUname} placeholder={t('username_ph')} placeholderTextColor="#B0B0C0" autoCapitalize="none" autoCorrect={false} />
+            <TextInput style={s.input} value={display} onChangeText={setDisplay} placeholder={t('display_name_ph')} placeholderTextColor="#B0B0C0" />
+            <TextInput style={s.input} value={pass} onChangeText={setPass} placeholder={t('password_min_ph')} placeholderTextColor="#B0B0C0" autoCapitalize="none" />
             <TouchableOpacity style={[s.createBtn, { backgroundColor: theme }]} onPress={createAccount} disabled={busy}>
-              {busy ? <ActivityIndicator color="#fff" /> : <><Ionicons name="person-add" size={18} color="#fff" /><Text style={s.createBtnText}>Hesap Oluştur</Text></>}
+              {busy ? <ActivityIndicator color="#fff" /> : <><Ionicons name="person-add" size={18} color="#fff" /><Text style={s.createBtnText}>{t('create_account')}</Text></>}
             </TouchableOpacity>
           </View>
 
           <View style={[s.codeBox, { backgroundColor: theme }]}>
-            <Text style={s.codeLabel}>Katılım Kodu</Text>
+            <Text style={s.codeLabel}>{t('join_code')}</Text>
             <Text style={s.code}>{biz.join_code || '—'}</Text>
-            <Text style={s.codeHint}>Alternatif: müşterilerine bu kodu ver; girince otomatik üye olurlar.</Text>
+            <Text style={s.codeHint}>{t('code_alt')}</Text>
           </View>
 
-          <Text style={s.h}>Bekleyen İstekler ({pending.length})</Text>
-          {pending.length === 0 && <Text style={s.empty}>Bekleyen istek yok.</Text>}
+          <Text style={s.h}>{t('pending_requests')} ({pending.length})</Text>
+          {pending.length === 0 && <Text style={s.empty}>{t('no_pending')}</Text>}
           {pending.map((m) => (
             <View key={m.id} style={s.row}>
               <View style={[s.avatar, { backgroundColor: theme }]}><Text style={s.avatarText}>{(m.user_name || '?')[0].toUpperCase()}</Text></View>
-              <Text style={s.name}>{m.user_name || 'Kullanıcı'}</Text>
-              <TouchableOpacity style={[s.mini, { backgroundColor: theme }]} onPress={() => act(m.user_id, 'approve')}><Text style={s.miniText}>Onayla</Text></TouchableOpacity>
+              <Text style={s.name}>{m.user_name || t('user')}</Text>
+              <TouchableOpacity style={[s.mini, { backgroundColor: theme }]} onPress={() => act(m.user_id, 'approve')}><Text style={s.miniText}>{t('approve')}</Text></TouchableOpacity>
               <TouchableOpacity style={s.miniGhost} onPress={() => act(m.user_id, 'remove')}><Ionicons name="close" size={18} color={COLORS.danger} /></TouchableOpacity>
             </View>
           ))}
 
-          <Text style={s.h}>Aktif Üyeler ({active.length})</Text>
-          {active.length === 0 && <Text style={s.empty}>Henüz üye yok.</Text>}
+          <Text style={s.h}>{t('active_members')} ({active.length})</Text>
+          {active.length === 0 && <Text style={s.empty}>{t('no_members')}</Text>}
           {active.map((m) => (
             <View key={m.id} style={s.row}>
               <View style={[s.avatar, { backgroundColor: theme }]}><Text style={s.avatarText}>{(m.user_name || '?')[0].toUpperCase()}</Text></View>
               <View style={{ flex: 1 }}>
-                <Text style={s.name}>{m.user_name || 'Kullanıcı'}</Text>
+                <Text style={s.name}>{m.user_name || t('user')}</Text>
                 {m.username ? <Text style={s.uname}>@{m.username}{m.platform ? ` · ${m.platform}` : ''}</Text> : null}
               </View>
               <TouchableOpacity style={s.miniGhost} onPress={() => act(m.user_id, 'remove')}><Ionicons name="trash-outline" size={18} color={COLORS.danger} /></TouchableOpacity>
