@@ -4,16 +4,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getEntries } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
-const FIELDS = [
-  ['weight', 'Kilo', 'kg'], ['fat', 'Yağ', '%'], ['fat_mass', 'Yağ Kütlesi', 'kg'], ['muscle', 'Kas', 'kg'],
-  ['water', 'Su', '%'], ['bone', 'Kemik', 'kg'], ['bmi', 'BMI', ''], ['visceral', 'İç Yağ', ''],
-  ['metabolic_age', 'Metabolik Yaş', ''], ['bmr', 'Bazal Metab.', 'kcal'], ['protein', 'Protein', '%'], ['mineral', 'Mineral', ''],
-  ['waist', 'Bel', 'cm'], ['hip', 'Kalça', 'cm'], ['chest', 'Göğüs', 'cm'], ['arm', 'Kol', 'cm'],
-];
+const FIELDS = ['weight', 'fat', 'fat_mass', 'muscle', 'water', 'bone', 'bmi', 'visceral', 'metabolic_age', 'bmr', 'protein', 'mineral', 'waist', 'hip', 'chest', 'arm'];
 
 export default function Records({ businessId, theme }) {
+  const { t } = useLang();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const load = useCallback(async () => {
@@ -23,7 +20,7 @@ export default function Records({ businessId, theme }) {
   useEffect(() => { load(); }, [load]);
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
-  if (!list.length) return <View style={s.emptyWrap}><Ionicons name="fitness-outline" size={48} color={COLORS.muted} /><Text style={s.emptyText}>Henüz ölçümün yok. Görüşmede eklenecek.</Text></View>;
+  if (!list.length) return <View style={s.emptyWrap}><Ionicons name="fitness-outline" size={48} color={COLORS.muted} /><Text style={s.emptyText}>{t('no_measurements')}</Text></View>;
 
   const latest = list[0];
   const prev = list[1];
@@ -35,7 +32,7 @@ export default function Records({ businessId, theme }) {
     <ScrollView contentContainerStyle={s.wrap}>
       {/* Özet kartı */}
       <View style={[s.summary, { backgroundColor: theme }]}>
-        <Text style={s.sumLabel}>Son Ölçüm · {latest.data.date}</Text>
+        <Text style={s.sumLabel}>{t('last_measurement')} · {latest.data.date}</Text>
         <View style={s.sumRow}>
           <Text style={s.sumWeight}>{latest.data.weight || '—'}<Text style={s.sumUnit}> kg</Text></Text>
           {delta !== null && (
@@ -47,22 +44,22 @@ export default function Records({ businessId, theme }) {
         </View>
       </View>
 
-      <Text style={s.h}>Detaylar</Text>
+      <Text style={s.h}>{t('details')}</Text>
       <View style={s.detailGrid}>
-        {FIELDS.filter(([k]) => latest.data[k]).map(([k, label, unit]) => (
+        {FIELDS.filter((k) => latest.data[k]).map((k) => (
           <View key={k} style={s.detailBox}>
-            <Text style={s.detailLabel}>{label}</Text>
-            <Text style={s.detailVal}>{latest.data[k]}{unit ? <Text style={s.detailUnit}> {unit}</Text> : null}</Text>
+            <Text style={s.detailLabel}>{t('fld_' + k).replace(/ \(.*\)/, '')}</Text>
+            <Text style={s.detailVal}>{latest.data[k]}</Text>
           </View>
         ))}
       </View>
       {latest.data.note ? <Text style={s.note}>{latest.data.note}</Text> : null}
 
-      <Text style={s.h}>Geçmiş ({list.length})</Text>
+      <Text style={s.h}>{t('history')} ({list.length})</Text>
       {list.map((e) => (
         <View key={e.id} style={s.row}>
           <Text style={s.date}>{e.data.date}</Text>
-          <Text style={s.vals}>{FIELDS.filter(([k]) => e.data[k]).slice(0, 6).map(([k, label, unit]) => `${label} ${e.data[k]}${unit}`).join('  ·  ')}</Text>
+          <Text style={s.vals}>{FIELDS.filter((k) => e.data[k]).slice(0, 6).map((k) => `${t('fld_' + k).replace(/ \(.*\)/, '')} ${e.data[k]}`).join('  ·  ')}</Text>
           {e.data.note ? <Text style={s.rowNote}>{e.data.note}</Text> : null}
         </View>
       ))}

@@ -3,9 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getEntries } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function Plans({ businessId, theme }) {
+  const { t } = useLang();
   const [items, setItems] = useState([]);
   const [open, setOpen] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,7 +18,7 @@ export default function Plans({ businessId, theme }) {
   useEffect(() => { load(); }, [load]);
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
-  if (!items.length) return <View style={s.empty}><Ionicons name="clipboard-outline" size={48} color={COLORS.muted} /><Text style={s.emptyText}>Sana atanmış program yok. Görüşmede eklenecek.</Text></View>;
+  if (!items.length) return <View style={s.empty}><Ionicons name="clipboard-outline" size={48} color={COLORS.muted} /><Text style={s.emptyText}>{t('no_assigned_program')}</Text></View>;
 
   return (
     <ScrollView contentContainerStyle={s.wrap}>

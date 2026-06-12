@@ -4,11 +4,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getEntries, createEntryFor, deleteEntry, getMembers } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 const emptySection = () => ({ heading: '', content: '' });
 
 export default function ManagePlans({ businessId, theme }) {
+  const { t } = useLang();
   const [members, setMembers] = useState([]);
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,19 +33,19 @@ export default function ManagePlans({ businessId, theme }) {
   const rmSec = (i) => setSections((ss) => ss.length > 1 ? ss.filter((_, idx) => idx !== i) : ss);
 
   const save = async () => {
-    if (!sel) return Alert.alert('Müşteri seç', 'Önce bir müşteri seç.');
-    if (!title.trim()) return Alert.alert('Başlık', 'Program başlığı gir.');
+    if (!sel) return Alert.alert(t('select_customer'));
+    if (!title.trim()) return Alert.alert(t('title_label'), t('enter_program_title'));
     const secs = sections.filter((x) => x.heading.trim() || x.content.trim());
     setSaving(true);
     try {
       await createEntryFor(businessId, 'plans', sel, { title: title.trim(), sections: secs, date: new Date().toISOString().slice(0, 10) });
       setTitle(''); setSections([emptySection()]); await load();
-      Alert.alert('Atandı', 'Program müşteriye atandı.');
-    } catch (e) { Alert.alert('Hata', 'Atanamadı'); } finally { setSaving(false); }
+      Alert.alert(t('assigned'), t('program_assigned'));
+    } catch (e) { Alert.alert(t('error'), t('could_not_assign')); } finally { setSaving(false); }
   };
-  const del = (id) => Alert.alert('Sil', 'Program silinsin mi?', [
-    { text: 'Vazgeç', style: 'cancel' },
-    { text: 'Sil', style: 'destructive', onPress: async () => { await deleteEntry(businessId, 'plans', id); load(); } },
+  const del = (id) => Alert.alert(t('delete'), t('delete_program_q'), [
+    { text: t('cancel'), style: 'cancel' },
+    { text: t('delete'), style: 'destructive', onPress: async () => { await deleteEntry(businessId, 'plans', id); load(); } },
   ]);
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
@@ -52,8 +54,8 @@ export default function ManagePlans({ businessId, theme }) {
 
   return (
     <ScrollView contentContainerStyle={s.wrap} keyboardShouldPersistTaps="handled">
-      <Text style={s.h}>Müşteri Seç</Text>
-      {members.length === 0 && <Text style={s.empty}>Aktif müşteri yok. "Kullanıcılar" ekranından hesap aç.</Text>}
+      <Text style={s.h}>{t('select_customer')}</Text>
+      {members.length === 0 && <Text style={s.empty}>{t('no_active_customers')}</Text>}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 4 }}>
         {members.map((m) => {
           const on = Number(sel) === Number(m.user_id);
@@ -67,24 +69,24 @@ export default function ManagePlans({ businessId, theme }) {
 
       {sel && (
         <>
-          <Text style={s.h}>{selName} — Yeni Program</Text>
-          <TextInput style={s.input} value={title} onChangeText={setTitle} placeholder="Program başlığı (örn: 1. Hafta Diyeti)" placeholderTextColor="#B0B0C0" />
+          <Text style={s.h}>{selName} — {t('new_program')}</Text>
+          <TextInput style={s.input} value={title} onChangeText={setTitle} placeholder={t('program_title_ph')} placeholderTextColor="#B0B0C0" />
           {sections.map((sec, i) => (
             <View key={i} style={s.secBox}>
               <View style={s.secHead}>
-                <TextInput style={[s.input, { flex: 1, marginBottom: 0 }]} value={sec.heading} onChangeText={(v) => setSec(i, { heading: v })} placeholder={`Bölüm başlığı (örn: Kahvaltı)`} placeholderTextColor="#B0B0C0" />
+                <TextInput style={[s.input, { flex: 1, marginBottom: 0 }]} value={sec.heading} onChangeText={(v) => setSec(i, { heading: v })} placeholder={t('section_title_ph')} placeholderTextColor="#B0B0C0" />
                 {sections.length > 1 ? <TouchableOpacity onPress={() => rmSec(i)} style={{ padding: 6 }}><Ionicons name="close-circle" size={22} color={COLORS.muted} /></TouchableOpacity> : null}
               </View>
-              <TextInput style={[s.input, s.multi]} value={sec.content} onChangeText={(v) => setSec(i, { content: v })} placeholder="İçerik (öğün/hareket detayı...)" placeholderTextColor="#B0B0C0" multiline />
+              <TextInput style={[s.input, s.multi]} value={sec.content} onChangeText={(v) => setSec(i, { content: v })} placeholder={t('section_content_ph')} placeholderTextColor="#B0B0C0" multiline />
             </View>
           ))}
-          <TouchableOpacity style={s.addSec} onPress={addSec}><Ionicons name="add" size={18} color={theme} /><Text style={[s.addSecText, { color: theme }]}>Bölüm ekle</Text></TouchableOpacity>
+          <TouchableOpacity style={s.addSec} onPress={addSec}><Ionicons name="add" size={18} color={theme} /><Text style={[s.addSecText, { color: theme }]}>{t('add_section')}</Text></TouchableOpacity>
           <TouchableOpacity style={[s.btn, { backgroundColor: theme }]} onPress={save} disabled={saving}>
-            {saving ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Müşteriye Ata</Text>}
+            {saving ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>{t('assign_to_customer')}</Text>}
           </TouchableOpacity>
 
-          <Text style={s.h}>{selName} — Programları ({progs.length})</Text>
-          {progs.length === 0 && <Text style={s.empty}>Bu müşteride program yok.</Text>}
+          <Text style={s.h}>{selName} — {t('programs_label')} ({progs.length})</Text>
+          {progs.length === 0 && <Text style={s.empty}>{t('no_program_customer')}</Text>}
           {progs.map((e) => (
             <View key={e.id} style={s.prog}>
               <View style={s.progTop}>
