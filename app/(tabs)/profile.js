@@ -25,25 +25,25 @@ export default function Profile() {
 
         <View style={s.userCard}>
           <View style={s.avatar}><Text style={s.avatarText}>{(user?.name || '?')[0].toUpperCase()}</Text></View>
-          <Text style={s.name}>{user?.name || 'Kullanıcı'}</Text>
+          <Text style={s.name}>{user?.name || t('user')}</Text>
           {user?.email ? <Text style={s.email}>{user.email}</Text> : null}
           <View style={s.badges}>
-            {status === 'approved' ? <Badge icon="briefcase" text="Satıcı" color={COLORS.success} /> : null}
-            {user?.is_admin ? <Badge icon="shield-checkmark" text="Yönetici" color={COLORS.primary} /> : null}
+            {status === 'approved' ? <Badge icon="briefcase" text={t('badge_seller')} color={COLORS.success} /> : null}
+            {user?.is_admin ? <Badge icon="shield-checkmark" text={t('badge_admin')} color={COLORS.primary} /> : null}
           </View>
         </View>
 
         {/* Satıcı bölümü */}
-        <Text style={s.sectionLabel}>İşletme</Text>
+        <Text style={s.sectionLabel}>{t('business')}</Text>
         {status === 'none' && (
-          <Card icon="briefcase-outline" title="İşletme Hesabı Aç" desc="Kendi uygulamanı yap ve hizmet sat. Başvuru gerekir." onPress={() => router.push('/seller-apply')} />
+          <Card icon="briefcase-outline" title={t('open_business')} desc={t('open_business_desc')} onPress={() => router.push('/seller-apply')} />
         )}
         {status === 'pending' && (
           <View style={[s.infoCard, { backgroundColor: '#FFF7E6' }]}>
             <Ionicons name="time-outline" size={24} color="#B7791F" />
             <View style={{ flex: 1 }}>
-              <Text style={s.infoTitle}>Başvurun inceleniyor</Text>
-              <Text style={s.infoDesc}>Onaylanınca işletme app'i kurabilirsin.</Text>
+              <Text style={s.infoTitle}>{t('pending_title')}</Text>
+              <Text style={s.infoDesc}>{t('pending_desc')}</Text>
             </View>
           </View>
         )}
@@ -52,33 +52,33 @@ export default function Profile() {
             <View style={[s.infoCard, { backgroundColor: '#FDECEC' }]}>
               <Ionicons name="close-circle-outline" size={24} color={COLORS.danger} />
               <View style={{ flex: 1 }}>
-                <Text style={s.infoTitle}>Başvurun reddedildi</Text>
-                <Text style={s.infoDesc}>{user?.seller_profile?.reject_reason || 'Tekrar başvurabilirsin.'}</Text>
+                <Text style={s.infoTitle}>{t('rejected_title')}</Text>
+                <Text style={s.infoDesc}>{user?.seller_profile?.reject_reason || t('reapply_desc')}</Text>
               </View>
             </View>
-            <Card icon="refresh" title="Tekrar Başvur" desc="Bilgileri güncelleyip yeniden gönder." onPress={() => router.push('/seller-apply')} />
+            <Card icon="refresh" title={t('reapply')} desc={t('reapply_desc')} onPress={() => router.push('/seller-apply')} />
           </View>
         )}
         {status === 'approved' && (
           <>
-            <Card icon="briefcase" title="İşletmelerim" desc="App'lerini yönet, yeni işletme ekle." onPress={() => router.push('/my-businesses')} />
-            <Card icon="help-buoy-outline" title="Kılavuz" desc="Tüm özellikler nasıl kullanılır." onPress={() => router.push('/guide')} />
+            <Card icon="briefcase" title={t('my_businesses')} desc={t('my_businesses_desc')} onPress={() => router.push('/my-businesses')} />
+            <Card icon="help-buoy-outline" title={t('guide_card')} desc={t('guide_card_desc')} onPress={() => router.push('/guide')} />
           </>
         )}
 
         {/* Admin */}
         {user?.is_admin && (
           <>
-            <Text style={s.sectionLabel}>Yönetim {user?.is_super ? '(Süper Admin)' : ''}</Text>
-            <Card icon="shield-checkmark-outline" title="Satıcı Başvuruları" desc="Bekleyen başvuruları onayla/reddet." onPress={() => router.push('/admin/sellers')} />
-            {user?.is_super && <Card icon="business-outline" title="Tüm İşletmeler" desc="Askıya al / aktifleştir / denetle." onPress={() => router.push('/admin/businesses')} />}
+            <Text style={s.sectionLabel}>{t('admin_mgmt')}{user?.is_super ? ` (${t('super_admin')})` : ''}</Text>
+            <Card icon="shield-checkmark-outline" title={t('seller_apps')} desc={t('seller_apps_desc')} onPress={() => router.push('/admin/sellers')} />
+            {user?.is_super && <Card icon="business-outline" title={t('all_businesses')} desc={t('all_businesses_desc')} onPress={() => router.push('/admin/businesses')} />}
           </>
         )}
 
         {/* Yardım & yasal */}
-        <Text style={s.sectionLabel}>Yardım & Yasal</Text>
-        <Card icon="mail-outline" title="Destek & Geri Bildirim" desc="Bize yaz: o.y.baser@gmail.com" onPress={() => Linking.openURL('mailto:o.y.baser@gmail.com?subject=yapp%20Geri%20Bildirim')} />
-        <Card icon="document-text-outline" title="Kullanım Sözleşmesi" desc="Şartlar ve koşullar." onPress={() => router.push('/terms')} />
+        <Text style={s.sectionLabel}>{t('help_legal')}</Text>
+        <Card icon="mail-outline" title={t('support')} desc={`${t('support_desc')}: o.y.baser@gmail.com`} onPress={() => Linking.openURL('mailto:o.y.baser@gmail.com?subject=Yapio%20Feedback')} />
+        <Card icon="document-text-outline" title={t('terms_card')} desc={t('terms_desc')} onPress={() => router.push('/terms')} />
 
         <Text style={s.sectionLabel}>{t('settings')}</Text>
         <View style={s.langCard}>
@@ -95,7 +95,7 @@ export default function Profile() {
 
         <TouchableOpacity style={s.logoutBtn} onPress={doLogout}>
           <Ionicons name="log-out-outline" size={20} color={COLORS.danger} />
-          <Text style={s.logoutText}>Çıkış Yap</Text>
+          <Text style={s.logoutText}>{t('logout')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

@@ -9,11 +9,13 @@ import { myBusinesses } from '../src/api/client';
 import { COLORS, SIZES } from '../src/theme';
 import { AppIcon } from '../src/icons';
 import { GuideAccordion } from './guide';
+import { useLang } from '../src/i18n';
 
-const STATUS = { draft: { t: 'Taslak', c: '#8A8AA3' }, active: { t: 'Yayında', c: COLORS.success }, suspended: { t: 'Askıda', c: COLORS.danger } };
+const STATUS = { draft: { k: 'st_draft', c: '#8A8AA3' }, active: { k: 'st_active', c: COLORS.success }, suspended: { k: 'st_suspended', c: COLORS.danger } };
 
 export default function MyBusinesses() {
   const router = useRouter();
+  const { t } = useLang();
   const [list, setList] = useState([]);
   const [showGuide, setShowGuide] = useState(false);
 
@@ -42,7 +44,7 @@ export default function MyBusinesses() {
         {list.length > 0 ? (
           <TouchableOpacity style={s.newBtn} onPress={() => router.push('/onboarding')}>
             <Ionicons name="add" size={18} color="#fff" />
-            <Text style={s.newText}>Yeni</Text>
+            <Text style={s.newText}>{t('new')}</Text>
           </TouchableOpacity>
         ) : <View style={{ width: 60 }} />}
       </View>
@@ -51,14 +53,14 @@ export default function MyBusinesses() {
         data={list}
         keyExtractor={(x) => String(x.id)}
         contentContainerStyle={s.list}
-        ListHeaderComponent={<Text style={s.title}>İşletmelerim</Text>}
+        ListHeaderComponent={<Text style={s.title}>{t('my_businesses')}</Text>}
         ListEmptyComponent={
           <View style={s.empty}>
             <Ionicons name="briefcase-outline" size={64} color={COLORS.muted} style={{ marginBottom: 14 }} />
-            <Text style={s.emptyTitle}>İlk işletme app'ini kur</Text>
-            <Text style={s.emptyText}>Sektörünü seç, hazır şablonla dakikalar içinde kendi uygulamanı yayınla — randevu, menü, sadakat, push.</Text>
+            <Text style={s.emptyTitle}>{t('first_app_title')}</Text>
+            <Text style={s.emptyText}>{t('first_app_desc')}</Text>
             <TouchableOpacity style={s.emptyBtn} onPress={() => router.push('/onboarding')}>
-              <Text style={s.emptyBtnText}>Hemen Başla</Text>
+              <Text style={s.emptyBtnText}>{t('start_now')}</Text>
             </TouchableOpacity>
           </View>
         }
@@ -72,7 +74,7 @@ export default function MyBusinesses() {
                 <Text style={s.name}>{item.name}</Text>
                 <View style={s.statusRow}>
                   <View style={[s.dot, { backgroundColor: st.c }]} />
-                  <Text style={[s.status, { color: st.c }]}>{st.t}</Text>
+                  <Text style={[s.status, { color: st.c }]}>{t(st.k)}</Text>
                   <Text style={s.role}> · {item.role}</Text>
                 </View>
               </View>
@@ -85,11 +87,11 @@ export default function MyBusinesses() {
       <Modal visible={showGuide} animationType="slide" onRequestClose={closeGuide}>
         <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
           <ScrollView contentContainerStyle={{ padding: SIZES.pad, paddingBottom: 30 }}>
-            <Text style={s.title}>Hoş geldin! 👋</Text>
-            <Text style={s.guideSub}>İlk uygulamanı kurmadan önce nasıl çalıştığını oku. Sonra Profil &gt; Kılavuz'dan tekrar bakabilirsin.</Text>
+            <Text style={s.title}>{t('welcome')}</Text>
+            <Text style={s.guideSub}>{t('guide_intro')}</Text>
             <GuideAccordion startOpen={0} />
             <TouchableOpacity style={s.gotIt} onPress={closeGuide}>
-              <Text style={s.gotItText}>Anladım, Başlayalım</Text>
+              <Text style={s.gotItText}>{t('got_it')}</Text>
             </TouchableOpacity>
           </ScrollView>
         </SafeAreaView>
