@@ -70,6 +70,10 @@ const STRINGS = {
     my_loyalty_card: 'Sadakat Kartım', loyalty_won: 'Tebrikler! Ödülünü almaya hak kazandın.', loyalty_note: 'Damgalar işletme tarafından her ziyarette eklenir.', card_setup: 'Kart Ayarı', loyalty_goal_ph: 'Hedef (kaç damgada ödül)', reward: 'Ödül', reward_ph: 'Örn: 1 ürün bedava', no_loyalty_cards: 'Henüz kart yok. Müşteri sadakat sekmesini açınca kartı oluşur.', campaigns_label: 'Kampanyalar', customer_cards: 'Müşteri Kartları', stamps: 'damga',
     search_person: 'Kişi ara...', no_messages_yet: 'Henüz mesaj yok. Müşteriler yazınca burada görünür.', you_prefix: 'Sen: ', reply_ph: 'Yanıt yaz...',
     oact_start: 'Hazırlamaya Başla', active_orders: 'Aktif Siparişler', total_label: 'Toplam', members_label: 'Üyeler', entries_word: 'giriş',
+    customer_tracking: 'Müşteri Takipleri', tracking_empty: 'Müşteriler takip girince burada görünür.', steps_word: 'adım',
+    new_announcement: 'Yeni duyuru', title_ph: 'Başlık', message_label: 'Mesaj', push_note: 'Müşteriler bunu app içinde "Bildirimler" sekmesinde görür.', no_announcements: 'Henüz duyuru yok.',
+    upload_image: 'Görsel Yükle', no_images: 'Henüz görsel yok.', reviews_count: 'değerlendirme', rate: 'Değerlendir', submit: 'Gönder',
+    desc_label: 'Açıklama', address_label: 'Adres', phone_label: 'Telefon', profile_updated: 'Profil güncellendi.', role_ph: 'Görev', team: 'Ekip', name_surname: 'Ad Soyad', comment_ph: 'Yorumun (ops.)', reviews_label: 'Yorumlar',
     membership_started: 'Üyelik başladı', active_membership: 'Aktif Üyelik', show_code_at_entry: 'Girişte bu kodu personele göster.', membership_plans: 'Üyelik Planları', no_plans: 'Henüz plan eklenmemiş.', subscribe: 'Abone Ol', plans_h: 'Planlar', plan_name_ph: 'Plan adı', member: 'Üye', checkin_plus: 'Giriş +1', started_label: 'Başlangıç', checkins_label: 'Giriş',
   },
   en: {
@@ -138,6 +142,10 @@ const STRINGS = {
     my_loyalty_card: 'My Loyalty Card', loyalty_won: "Congrats! You've earned your reward.", loyalty_note: 'Stamps are added by the business on each visit.', card_setup: 'Card Setup', loyalty_goal_ph: 'Goal (stamps for a reward)', reward: 'Reward', reward_ph: 'e.g. 1 free item', no_loyalty_cards: 'No cards yet. A card is created when a customer opens the loyalty tab.', campaigns_label: 'Campaigns', customer_cards: 'Customer Cards', stamps: 'stamps',
     search_person: 'Search person...', no_messages_yet: 'No messages yet. They appear when customers write.', you_prefix: 'You: ', reply_ph: 'Type a reply...',
     oact_start: 'Start Preparing', active_orders: 'Active Orders', total_label: 'Total', members_label: 'Members', entries_word: 'check-ins',
+    customer_tracking: 'Customer Tracking', tracking_empty: 'Appears when customers log tracking.', steps_word: 'steps',
+    new_announcement: 'New announcement', title_ph: 'Title', message_label: 'Message', push_note: 'Customers see this in the "Notifications" tab.', no_announcements: 'No announcements yet.',
+    upload_image: 'Upload Image', no_images: 'No images yet.', reviews_count: 'reviews', rate: 'Rate', submit: 'Submit',
+    desc_label: 'Description', address_label: 'Address', phone_label: 'Phone', profile_updated: 'Profile updated.', role_ph: 'Role', team: 'Team', name_surname: 'Full Name', comment_ph: 'Your review (opt.)', reviews_label: 'Reviews',
     membership_started: 'Membership started', active_membership: 'Active Membership', show_code_at_entry: 'Show this code to staff at entry.', membership_plans: 'Membership Plans', no_plans: 'No plans added yet.', subscribe: 'Subscribe', plans_h: 'Plans', plan_name_ph: 'Plan name', member: 'Member', checkin_plus: 'Check-in +1', started_label: 'Started', checkins_label: 'Check-ins',
   },
 };

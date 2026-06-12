@@ -3,9 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getEntries, createEntry } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function Reviews({ businessId, theme }) {
+  const { t } = useLang();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState(0);
@@ -30,22 +32,22 @@ export default function Reviews({ businessId, theme }) {
       <View style={s.avgBox}>
         <Text style={[s.avgNum, { color: theme }]}>{avg}</Text>
         <Stars n={Math.round(Number(avg) || 0)} color={theme} size={18} />
-        <Text style={s.avgCount}>{list.length} değerlendirme</Text>
+        <Text style={s.avgCount}>{list.length} {t('reviews_count')}</Text>
       </View>
 
-      <Text style={s.h}>Değerlendir</Text>
+      <Text style={s.h}>{t('rate')}</Text>
       <View style={s.pick}>
         {[1, 2, 3, 4, 5].map((i) => (
           <TouchableOpacity key={i} onPress={() => setRating(i)}><Ionicons name={i <= rating ? 'star' : 'star-outline'} size={32} color={theme} /></TouchableOpacity>
         ))}
       </View>
-      <TextInput style={s.input} value={comment} onChangeText={setComment} placeholder="Yorumun (ops.)" placeholderTextColor="#B0B0C0" multiline />
-      <TouchableOpacity style={[s.btn, { backgroundColor: theme }, !rating && { opacity: 0.4 }]} onPress={submit}><Text style={s.btnText}>Gönder</Text></TouchableOpacity>
+      <TextInput style={s.input} value={comment} onChangeText={setComment} placeholder={t('comment_ph')} placeholderTextColor="#B0B0C0" multiline />
+      <TouchableOpacity style={[s.btn, { backgroundColor: theme }, !rating && { opacity: 0.4 }]} onPress={submit}><Text style={s.btnText}>{t('submit')}</Text></TouchableOpacity>
 
-      <Text style={s.h}>Yorumlar</Text>
+      <Text style={s.h}>{t('reviews_label')}</Text>
       {list.map((e) => (
         <View key={e.id} style={s.row}>
-          <View style={s.rowTop}><Text style={s.who}>{e.user_name || 'Müşteri'}</Text><Stars n={e.data.rating} color={theme} size={14} /></View>
+          <View style={s.rowTop}><Text style={s.who}>{e.user_name || t('user')}</Text><Stars n={e.data.rating} color={theme} size={14} /></View>
           {e.data.comment ? <Text style={s.comment}>{e.data.comment}</Text> : null}
         </View>
       ))}

@@ -2,9 +2,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { getBusiness, updateBusiness } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function ManageProfile({ businessId, theme }) {
+  const { t } = useLang();
   const [f, setF] = useState({ description: '', address: '', phone: '', open: '09:00', close: '19:00' });
   const [loading, setLoading] = useState(true);
 
@@ -18,20 +20,20 @@ export default function ManageProfile({ businessId, theme }) {
 
   const save = async () => {
     await updateBusiness(businessId, { description: f.description, address: f.address, phone: f.phone, hours_json: { open: f.open, close: f.close } });
-    Alert.alert('Kaydedildi', 'Profil güncellendi.');
+    Alert.alert(t('saved'), t('profile_updated'));
   };
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
   return (
     <ScrollView contentContainerStyle={s.wrap}>
-      <Field label="Açıklama" value={f.description} onChange={(v) => setF({ ...f, description: v })} multi />
-      <Field label="Adres" value={f.address} onChange={(v) => setF({ ...f, address: v })} />
-      <Field label="Telefon" value={f.phone} onChange={(v) => setF({ ...f, phone: v })} kb="phone-pad" />
+      <Field label={t('desc_label')} value={f.description} onChange={(v) => setF({ ...f, description: v })} multi />
+      <Field label={t('address_label')} value={f.address} onChange={(v) => setF({ ...f, address: v })} />
+      <Field label={t('phone_label')} value={f.phone} onChange={(v) => setF({ ...f, phone: v })} kb="phone-pad" />
       <View style={{ flexDirection: 'row', gap: 10 }}>
-        <View style={{ flex: 1 }}><Field label="Açılış" value={f.open} onChange={(v) => setF({ ...f, open: v })} /></View>
-        <View style={{ flex: 1 }}><Field label="Kapanış" value={f.close} onChange={(v) => setF({ ...f, close: v })} /></View>
+        <View style={{ flex: 1 }}><Field label={t('open_time')} value={f.open} onChange={(v) => setF({ ...f, open: v })} /></View>
+        <View style={{ flex: 1 }}><Field label={t('close_time')} value={f.close} onChange={(v) => setF({ ...f, close: v })} /></View>
       </View>
-      <TouchableOpacity style={[s.btn, { backgroundColor: theme }]} onPress={save}><Text style={s.btnText}>Kaydet</Text></TouchableOpacity>
+      <TouchableOpacity style={[s.btn, { backgroundColor: theme }]} onPress={save}><Text style={s.btnText}>{t('save')}</Text></TouchableOpacity>
       <View style={{ height: 30 }} />
     </ScrollView>
   );

@@ -3,11 +3,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, Image, ActivityIndicator, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, mediaUrl } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 const W = (Dimensions.get('window').width - 18 * 2 - 12) / 2;
 
 export default function Gallery({ businessId, theme }) {
+  const { t } = useLang();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const load = useCallback(async () => {
@@ -16,7 +18,7 @@ export default function Gallery({ businessId, theme }) {
   useEffect(() => { load(); }, [load]);
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
-  if (!items.length) return <View style={s.empty}><Ionicons name="images-outline" size={48} color={COLORS.muted} /><Text style={s.emptyText}>Henüz görsel yok.</Text></View>;
+  if (!items.length) return <View style={s.empty}><Ionicons name="images-outline" size={48} color={COLORS.muted} /><Text style={s.emptyText}>{t('no_images')}</Text></View>;
 
   return (
     <ScrollView contentContainerStyle={s.wrap}>

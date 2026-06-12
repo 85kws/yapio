@@ -4,11 +4,13 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, ActivityIn
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { getItems, deleteItem, uploadModuleImage, mediaUrl } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 const W = (Dimensions.get('window').width - 18 * 2 - 12) / 2;
 
 export default function ManageGallery({ businessId, theme }) {
+  const { t } = useLang();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [up, setUp] = useState(false);
@@ -20,19 +22,19 @@ export default function ManageGallery({ businessId, theme }) {
 
   const add = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) return Alert.alert('İzin gerekli', 'Galeriye erişim izni verin.');
+    if (!perm.granted) return Alert.alert(t('permission_required'), t('gallery_permission'));
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
     if (res.canceled || !res.assets?.[0]) return;
     setUp(true);
     try { await uploadModuleImage(businessId, 'gallery', res.assets[0].uri); load(); }
-    catch { Alert.alert('Hata', 'Yüklenemedi'); } finally { setUp(false); }
+    catch { Alert.alert(t('error'), t('image_upload_failed')); } finally { setUp(false); }
   };
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
   return (
     <ScrollView contentContainerStyle={s.wrap}>
       <TouchableOpacity style={[s.addBtn, { backgroundColor: theme }]} onPress={add} disabled={up}>
-        {up ? <ActivityIndicator color="#fff" /> : <><Ionicons name="cloud-upload-outline" size={20} color="#fff" /><Text style={s.addText}>Görsel Yükle</Text></>}
+        {up ? <ActivityIndicator color="#fff" /> : <><Ionicons name="cloud-upload-outline" size={20} color="#fff" /><Text style={s.addText}>{t('upload_image')}</Text></>}
       </TouchableOpacity>
       <View style={s.grid}>
         {items.map((it) => (
@@ -42,7 +44,7 @@ export default function ManageGallery({ businessId, theme }) {
           </View>
         ))}
       </View>
-      {items.length === 0 && <Text style={s.empty}>Henüz görsel yok.</Text>}
+      {items.length === 0 && <Text style={s.empty}>{t('no_images')}</Text>}
       <View style={{ height: 30 }} />
     </ScrollView>
   );

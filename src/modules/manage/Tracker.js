@@ -2,9 +2,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { getEntries } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function ManageTracker({ businessId, theme }) {
+  const { t } = useLang();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const load = useCallback(async () => {
@@ -14,17 +16,17 @@ export default function ManageTracker({ businessId, theme }) {
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
   const byUser = {};
-  list.forEach((e) => { const k = e.user_name || 'Müşteri'; (byUser[k] = byUser[k] || []).push(e); });
+  list.forEach((e) => { const k = e.user_name || t('user'); (byUser[k] = byUser[k] || []).push(e); });
 
   return (
     <ScrollView contentContainerStyle={s.wrap}>
-      <Text style={s.h}>Müşteri Takipleri</Text>
-      {list.length === 0 && <Text style={s.empty}>Müşteriler takip girince burada görünür.</Text>}
+      <Text style={s.h}>{t('customer_tracking')}</Text>
+      {list.length === 0 && <Text style={s.empty}>{t('tracking_empty')}</Text>}
       {Object.entries(byUser).map(([name, recs]) => (
         <View key={name} style={s.card}>
           <Text style={s.who}>{name}</Text>
           {recs.slice(0, 5).map((e) => (
-            <Text key={e.id} style={s.rec}><Text style={s.date}>{e.data.date}  </Text>{e.data.steps || 0} adım · {e.data.water || 0} ml · {e.data.calorie || 0} kcal</Text>
+            <Text key={e.id} style={s.rec}><Text style={s.date}>{e.data.date}  </Text>{e.data.steps || 0} {t('steps_word')} · {e.data.water || 0} ml · {e.data.calorie || 0} kcal</Text>
           ))}
         </View>
       ))}

@@ -3,9 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, createItem, deleteItem } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function ManagePush({ businessId, theme }) {
+  const { t } = useLang();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [f, setF] = useState({ title: '', body: '' });
@@ -23,13 +25,13 @@ export default function ManagePush({ businessId, theme }) {
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
   return (
     <ScrollView contentContainerStyle={s.wrap}>
-      <Text style={s.h}>Yeni duyuru</Text>
-      <TextInput style={s.input} value={f.title} onChangeText={(v) => setF({ ...f, title: v })} placeholder="Başlık" placeholderTextColor="#B0B0C0" />
-      <TextInput style={[s.input, { minHeight: 70, textAlignVertical: 'top' }]} value={f.body} onChangeText={(v) => setF({ ...f, body: v })} placeholder="Mesaj" placeholderTextColor="#B0B0C0" multiline />
-      <TouchableOpacity style={[s.btn, { backgroundColor: theme }]} onPress={send}><Ionicons name="megaphone" size={18} color="#fff" /><Text style={s.btnText}>Yayınla</Text></TouchableOpacity>
-      <Text style={s.note}>Müşteriler bunu app içinde "Bildirimler" sekmesinde görür.</Text>
+      <Text style={s.h}>{t('new_announcement')}</Text>
+      <TextInput style={s.input} value={f.title} onChangeText={(v) => setF({ ...f, title: v })} placeholder={t('title_ph')} placeholderTextColor="#B0B0C0" />
+      <TextInput style={[s.input, { minHeight: 70, textAlignVertical: 'top' }]} value={f.body} onChangeText={(v) => setF({ ...f, body: v })} placeholder={t('message_label')} placeholderTextColor="#B0B0C0" multiline />
+      <TouchableOpacity style={[s.btn, { backgroundColor: theme }]} onPress={send}><Ionicons name="megaphone" size={18} color="#fff" /><Text style={s.btnText}>{t('publish')}</Text></TouchableOpacity>
+      <Text style={s.note}>{t('push_note')}</Text>
 
-      <Text style={s.h}>Geçmiş ({items.length})</Text>
+      <Text style={s.h}>{t('history')} ({items.length})</Text>
       {items.map((it) => (
         <View key={it.id} style={s.row}>
           <View style={{ flex: 1 }}><Text style={s.title}>{it.data.title}</Text><Text style={s.body}>{it.data.body}</Text></View>

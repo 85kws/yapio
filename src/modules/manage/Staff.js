@@ -3,9 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, createItem, deleteItem } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function ManageStaff({ businessId, theme }) {
+  const { t } = useLang();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [f, setF] = useState({ name: '', role: '' });
@@ -23,7 +25,7 @@ export default function ManageStaff({ businessId, theme }) {
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
   return (
     <ScrollView contentContainerStyle={s.wrap}>
-      <Text style={s.h}>Ekip ({items.length})</Text>
+      <Text style={s.h}>{t('team')} ({items.length})</Text>
       {items.map((it) => (
         <View key={it.id} style={s.row}>
           <View style={[s.avatar, { backgroundColor: theme }]}><Text style={s.avatarText}>{(it.data.name || '?')[0].toUpperCase()}</Text></View>
@@ -32,8 +34,8 @@ export default function ManageStaff({ businessId, theme }) {
         </View>
       ))}
       <View style={s.addBox}>
-        <TextInput style={[s.input, { flex: 2 }]} value={f.name} onChangeText={(v) => setF({ ...f, name: v })} placeholder="Ad Soyad" placeholderTextColor="#B0B0C0" />
-        <TextInput style={[s.input, { flex: 1 }]} value={f.role} onChangeText={(v) => setF({ ...f, role: v })} placeholder="Görev" placeholderTextColor="#B0B0C0" />
+        <TextInput style={[s.input, { flex: 2 }]} value={f.name} onChangeText={(v) => setF({ ...f, name: v })} placeholder={t('name_surname')} placeholderTextColor="#B0B0C0" />
+        <TextInput style={[s.input, { flex: 1 }]} value={f.role} onChangeText={(v) => setF({ ...f, role: v })} placeholder={t('role_ph')} placeholderTextColor="#B0B0C0" />
         <TouchableOpacity style={[s.addBtn, { backgroundColor: theme }]} onPress={add}><Ionicons name="add" size={22} color="#fff" /></TouchableOpacity>
       </View>
       <View style={{ height: 30 }} />
