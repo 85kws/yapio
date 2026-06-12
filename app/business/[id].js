@@ -11,6 +11,7 @@ import { AppIcon, moduleIcon } from '../../src/icons';
 import { MODULE_INFO } from '../../src/modules';
 import ModuleInfoModal from '../../src/components/ModuleInfoModal';
 import { PATTERNS, Pattern } from '../../src/components/AppBackground';
+import { useLang } from '../../src/i18n';
 
 const ALL_MODULES = Object.keys(MODULE_INFO).filter((k) => k !== 'payments');
 const THEME_COLORS = ['#5B4BE7', '#E93D82', '#30A46C', '#0091FF', '#F76808', '#8B6914', '#1A1A2E', '#C4A35A', '#E5484D', '#4334C4'];
@@ -18,6 +19,7 @@ const BG_COLORS = ['#FFFFFF', '#F1F3F5', '#FFE8CC', '#FFD3D9', '#D0E4FF', '#C3F0
 
 export default function ManageBusiness() {
   const router = useRouter();
+  const { t } = useLang();
   const { id } = useLocalSearchParams();
   const [data, setData] = useState(null);
   const [enabled, setEnabled] = useState([]);
@@ -44,25 +46,25 @@ export default function ManageBusiness() {
 
   const addImage = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) return Alert.alert('İzin gerekli', 'Galeriye erişim izni verin.');
+    if (!perm.granted) return Alert.alert(t('permission_required'), t('gallery_permission'));
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
     if (res.canceled || !res.assets?.[0]) return;
     setUploading(true);
     try { setImages(await uploadBusinessImage(id, res.assets[0].uri)); }
-    catch (e) { Alert.alert('Hata', 'Görsel yüklenemedi'); }
+    catch (e) { Alert.alert(t('error'), t('image_upload_failed')); }
     finally { setUploading(false); }
   };
   const removeImage = async (url) => {
-    try { setImages(await deleteBusinessImage(id, url)); } catch { Alert.alert('Hata', 'Silinemedi'); }
+    try { setImages(await deleteBusinessImage(id, url)); } catch { Alert.alert(t('error'), t('could_not_delete')); }
   };
 
   const changeLogo = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) return Alert.alert('İzin gerekli', 'Galeriye erişim izni verin.');
+    if (!perm.granted) return Alert.alert(t('permission_required'), t('gallery_permission'));
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7, allowsEditing: true, aspect: [1, 1] });
     if (res.canceled || !res.assets?.[0]) return;
     try { const url = await uploadLogo(id, res.assets[0].uri); setData((d) => ({ ...d, business: { ...d.business, logo_url: url } })); }
-    catch { Alert.alert('Hata', 'Logo yüklenemedi'); }
+    catch { Alert.alert(t('error'), t('image_upload_failed')); }
   };
   const saveName = async () => { if (name.trim() && name !== data.business.name) await updateBusiness(id, { name: name.trim() }); };
   const setAccess = async (mode) => {
@@ -73,16 +75,16 @@ export default function ManageBusiness() {
     const next = { ...themeJson, ...patch };
     setThemeJson(next);
     setData((d) => ({ ...d, business: { ...d.business, theme_json: next } }));
-    try { await updateBusiness(id, { theme_json: next }); } catch { Alert.alert('Hata', 'Kaydedilemedi'); }
+    try { await updateBusiness(id, { theme_json: next }); } catch { Alert.alert(t('error'), t('not_saved')); }
   };
   const pickBgPhoto = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) return Alert.alert('İzin gerekli', 'Galeriye erişim izni verin.');
+    if (!perm.granted) return Alert.alert(t('permission_required'), t('gallery_permission'));
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
     if (res.canceled || !res.assets?.[0]) return;
     setBgUploading(true);
     try { const item = await uploadModuleImage(id, '_assets', res.assets[0].uri); saveTheme({ bg_type: 'photo', bg_photo: item?.data?.url || item?.url }); }
-    catch { Alert.alert('Hata', 'Görsel yüklenemedi'); }
+    catch { Alert.alert(t('error'), t('image_upload_failed')); }
     finally { setBgUploading(false); }
   };
 
@@ -103,14 +105,14 @@ export default function ManageBusiness() {
     try {
       const b = await publishBusiness(id);
       setData({ ...data, business: b });
-      Alert.alert('Yayında!', 'App vitrinde görünüyor artık.');
-    } catch (e) { Alert.alert('Hata', e?.message || 'Yayınlanamadı'); }
+      Alert.alert(t('published_title'), t('published_body'));
+    } catch (e) { Alert.alert(t('error'), e?.message || t('not_saved')); }
   };
 
   const confirmDelete = () => {
-    Alert.alert('Sil', `"${biz.name}" silinsin mi?`, [
-      { text: 'Vazgeç', style: 'cancel' },
-      { text: 'Sil', style: 'destructive', onPress: async () => { await deleteBusiness(id); router.replace('/my-businesses'); } },
+    Alert.alert(t('delete'), `"${biz.name}" ${t('delete_q')}`, [
+      { text: t('cancel'), style: 'cancel' },
+      { text: t('delete'), style: 'destructive', onPress: async () => { await deleteBusiness(id); router.replace('/my-businesses'); } },
     ]);
   };
 
@@ -119,11 +121,11 @@ export default function ManageBusiness() {
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={22} color={COLORS.primary} />
-          <Text style={s.back}>Geri</Text>
+          <Text style={s.back}>{t('back')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[s.previewBtn, { backgroundColor: theme }]} onPress={() => router.push(`/run/${biz.share_slug}`)}>
           <Ionicons name="play" size={15} color="#fff" />
-          <Text style={s.previewText}>Önizle</Text>
+          <Text style={s.previewText}>{t('preview')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -133,19 +135,19 @@ export default function ManageBusiness() {
             <AppIcon sectorKey={biz.sector_key} color={theme} size={76} radius={18} logo={biz.logo_url} />
             <View style={[s.logoEdit, { backgroundColor: theme }]}><Ionicons name="camera" size={14} color="#fff" /></View>
           </TouchableOpacity>
-          <TextInput style={s.nameInput} value={name} onChangeText={setName} onBlur={saveName} placeholder="App adı" placeholderTextColor="#B0B0C0" textAlign="center" />
-          <Text style={s.slug}>yapp.app/{biz.share_slug}</Text>
+          <TextInput style={s.nameInput} value={name} onChangeText={setName} onBlur={saveName} placeholder={t('app_name_ph')} placeholderTextColor="#B0B0C0" textAlign="center" />
+          <Text style={s.slug}>yapio.app/{biz.share_slug}</Text>
           <View style={[s.statusPill, { backgroundColor: biz.status === 'active' ? '#E7F7EF' : '#F1F1F7' }]}>
             <Ionicons name={biz.status === 'active' ? 'checkmark-circle' : 'ellipse-outline'} size={14} color={biz.status === 'active' ? COLORS.success : COLORS.muted} />
             <Text style={[s.statusText, { color: biz.status === 'active' ? COLORS.success : COLORS.muted }]}>
-              {biz.status === 'active' ? 'Yayında' : 'Taslak'}
+              {biz.status === 'active' ? t('st_active') : t('st_draft')}
             </Text>
           </View>
         </View>
 
-        <Text style={s.sectionTitle}>Tema & Arka Plan</Text>
-        <Text style={s.sectionSub}>Uygulamanın rengi ve arka planı.</Text>
-        <Text style={s.miniLabel}>Tema rengi</Text>
+        <Text style={s.sectionTitle}>{t('theme_bg')}</Text>
+        <Text style={s.sectionSub}>{t('theme_bg_sub')}</Text>
+        <Text style={s.miniLabel}>{t('theme_color')}</Text>
         <View style={s.swatchRow}>
           {THEME_COLORS.map((c) => (
             <TouchableOpacity key={c} style={[s.swatch, { backgroundColor: c }, (themeJson.color || theme) === c && s.swatchOn]} onPress={() => saveTheme({ color: c })}>
@@ -156,13 +158,13 @@ export default function ManageBusiness() {
         <View style={s.hexRow}>
           <Text style={s.hexHash}>#</Text>
           <TextInput style={s.hexInput} value={hex} onChangeText={(v) => setHex(v.replace('#', '').slice(0, 6))} placeholder={(themeJson.color || theme).replace('#', '')} placeholderTextColor="#B0B0C0" autoCapitalize="characters" autoCorrect={false} />
-          <TouchableOpacity style={[s.hexBtn, { backgroundColor: theme }]} onPress={() => { const h = hex.trim(); if (/^[0-9a-fA-F]{6}$/.test(h)) { saveTheme({ color: '#' + h.toUpperCase() }); setHex(''); } else Alert.alert('Geçersiz kod', '6 haneli renk kodu gir (örn. 5B4BE7).'); }}>
-            <Text style={s.hexBtnText}>Uygula</Text>
+          <TouchableOpacity style={[s.hexBtn, { backgroundColor: theme }]} onPress={() => { const h = hex.trim(); if (/^[0-9a-fA-F]{6}$/.test(h)) { saveTheme({ color: '#' + h.toUpperCase() }); setHex(''); } else Alert.alert(t('invalid_code'), t('invalid_code_body')); }}>
+            <Text style={s.hexBtnText}>{t('apply')}</Text>
           </TouchableOpacity>
         </View>
-        <Text style={s.miniLabel}>Arka plan</Text>
+        <Text style={s.miniLabel}>{t('background')}</Text>
         <View style={s.segment}>
-          {[['solid', 'Düz Renk'], ['pattern', 'Desen'], ['photo', 'Foto']].map(([v, l]) => (
+          {[['solid', t('bg_solid')], ['pattern', t('bg_pattern')], ['photo', t('bg_photo')]].map(([v, l]) => (
             <TouchableOpacity key={v} style={[s.segItem, (themeJson.bg_type || 'solid') === v && { backgroundColor: theme }]} onPress={() => saveTheme({ bg_type: v })}>
               <Text style={[s.segText, (themeJson.bg_type || 'solid') === v && { color: '#fff' }]}>{l}</Text>
             </TouchableOpacity>
@@ -185,7 +187,7 @@ export default function ManageBusiness() {
           </View>
         ) : themeJson.bg_type === 'photo' ? (
           <TouchableOpacity style={[s.bgPhotoBtn, { borderColor: theme }]} onPress={pickBgPhoto} disabled={bgUploading}>
-            {bgUploading ? <ActivityIndicator color={theme} /> : <><Ionicons name="image" size={18} color={theme} /><Text style={[s.bgPhotoText, { color: theme }]}>{themeJson.bg_photo ? 'Fotoğrafı Değiştir' : 'Arka Plan Fotoğrafı Seç'}</Text></>}
+            {bgUploading ? <ActivityIndicator color={theme} /> : <><Ionicons name="image" size={18} color={theme} /><Text style={[s.bgPhotoText, { color: theme }]}>{themeJson.bg_photo ? t('change_photo') : t('pick_bg_photo')}</Text></>}
           </TouchableOpacity>
         ) : (
           <View style={s.swatchRow}>
@@ -196,12 +198,12 @@ export default function ManageBusiness() {
             ))}
           </View>
         )}
-        <Text style={s.bgNote}>Desen ve foto arka plan, Dev+ ve Pro pakette aktif olur.</Text>
+        <Text style={s.bgNote}>{t('bg_note')}</Text>
 
-        <Text style={s.sectionTitle}>Erişim</Text>
-        <Text style={s.sectionSub}>Herkese açık mı, yoksa sadece onayladığın üyeler mi kullanabilsin?</Text>
+        <Text style={s.sectionTitle}>{t('access')}</Text>
+        <Text style={s.sectionSub}>{t('access_sub')}</Text>
         <View style={s.segment}>
-          {[['public', 'Herkese Açık'], ['private', 'Özel (kayıt sistemi)']].map(([v, l]) => (
+          {[['public', t('public')], ['private', t('private')]].map(([v, l]) => (
             <TouchableOpacity key={v} style={[s.segItem, (biz.access_mode || 'public') === v && { backgroundColor: theme }]} onPress={() => setAccess(v)}>
               <Text style={[s.segText, (biz.access_mode || 'public') === v && { color: '#fff' }]}>{l}</Text>
             </TouchableOpacity>
@@ -210,12 +212,12 @@ export default function ManageBusiness() {
         {biz.access_mode === 'private' && (
           <View style={s.accessBox}>
             <View style={{ flex: 1 }}>
-              <Text style={s.accessLabel}>Katılım Kodu</Text>
+              <Text style={s.accessLabel}>{t('join_code')}</Text>
               <Text style={[s.accessCode, { color: theme }]}>{biz.join_code || '—'}</Text>
             </View>
             <TouchableOpacity style={[s.membersBtn, { borderColor: theme }]} onPress={() => router.push(`/members/${id}`)}>
               <Ionicons name="people" size={16} color={theme} />
-              <Text style={[s.membersText, { color: theme }]}>Kullanıcılar</Text>
+              <Text style={[s.membersText, { color: theme }]}>{t('users')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -223,12 +225,12 @@ export default function ManageBusiness() {
         {biz.status !== 'active' && (
           <TouchableOpacity style={[s.publishBtn, { backgroundColor: theme }]} onPress={doPublish}>
             <Ionicons name="rocket" size={18} color="#fff" />
-            <Text style={s.publishText}>Yayınla</Text>
+            <Text style={s.publishText}>{t('publish')}</Text>
           </TouchableOpacity>
         )}
 
-        <Text style={s.sectionTitle}>Mağaza Görselleri</Text>
-        <Text style={s.sectionSub}>Vitrindeki mağaza sayfanda görünür (ekran görüntüleri, tanıtım).</Text>
+        <Text style={s.sectionTitle}>{t('store_images')}</Text>
+        <Text style={s.sectionSub}>{t('store_images_sub')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingBottom: 4 }}>
           {images.map((u) => (
             <View key={u} style={s.shotWrap}>
@@ -239,12 +241,12 @@ export default function ManageBusiness() {
             </View>
           ))}
           <TouchableOpacity style={s.shotAdd} onPress={addImage} disabled={uploading}>
-            {uploading ? <ActivityIndicator color={theme} /> : <><Ionicons name="add" size={28} color={theme} /><Text style={[s.shotAddText, { color: theme }]}>Ekle</Text></>}
+            {uploading ? <ActivityIndicator color={theme} /> : <><Ionicons name="add" size={28} color={theme} /><Text style={[s.shotAddText, { color: theme }]}>{t('add')}</Text></>}
           </TouchableOpacity>
         </ScrollView>
 
-        <Text style={s.sectionTitle}>Özellikler {saving ? <Text style={s.saving}>· kaydediliyor</Text> : null}</Text>
-        <Text style={s.sectionSub}>App'inde hangi modüller olsun?</Text>
+        <Text style={s.sectionTitle}>{t('features')} {saving ? <Text style={s.saving}>· {t('saving')}</Text> : null}</Text>
+        <Text style={s.sectionSub}>{t('features_sub')}</Text>
         <View style={s.modList}>
           {ALL_MODULES.map((key) => (
             <View key={key} style={s.modRow}>
@@ -255,7 +257,7 @@ export default function ManageBusiness() {
               </TouchableOpacity>
               {enabled.includes(key) && (
                 <TouchableOpacity style={[s.manageBtn, { borderColor: theme }]} onPress={() => router.push(`/manage/${id}/${key}`)}>
-                  <Text style={[s.manageText, { color: theme }]}>Yönet</Text>
+                  <Text style={[s.manageText, { color: theme }]}>{t('manage')}</Text>
                 </TouchableOpacity>
               )}
               <Switch
@@ -269,18 +271,18 @@ export default function ManageBusiness() {
 
         <TouchableOpacity style={s.linkRow} onPress={() => router.push(`/guide`)}>
           <Ionicons name="help-buoy-outline" size={20} color={theme} />
-          <Text style={s.linkText}>Kılavuz · Nasıl kullanılır?</Text>
+          <Text style={s.linkText}>{t('guide_link')}</Text>
           <Ionicons name="chevron-forward" size={22} color={COLORS.muted} />
         </TouchableOpacity>
 
         <TouchableOpacity style={s.linkRow} onPress={() => router.push(`/manage/${id}/canvas`)}>
           <Ionicons name="color-wand-outline" size={20} color={theme} />
-          <Text style={s.linkText}>Sayfayı Tasarla — sürükle bırak</Text>
+          <Text style={s.linkText}>{t('design_page')}</Text>
           <Ionicons name="chevron-forward" size={22} color={COLORS.muted} />
         </TouchableOpacity>
 
         <TouchableOpacity style={s.deleteBtn} onPress={confirmDelete}>
-          <Text style={s.deleteText}>İşletmeyi Sil</Text>
+          <Text style={s.deleteText}>{t('delete_business')}</Text>
         </TouchableOpacity>
       </ScrollView>
 
