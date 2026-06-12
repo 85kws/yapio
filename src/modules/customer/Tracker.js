@@ -3,9 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getEntries, createEntry } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function Tracker({ businessId, theme }) {
+  const { t } = useLang();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [f, setF] = useState({ water: '', calorie: '' });
@@ -29,20 +31,20 @@ export default function Tracker({ businessId, theme }) {
 
   return (
     <ScrollView contentContainerStyle={s.wrap}>
-      <Text style={s.h}>Bugün</Text>
+      <Text style={s.h}>{t('today')}</Text>
       <View style={s.stats}>
-        <Stat icon="water" label="Su (ml)" val={sum('water')} theme={theme} />
-        <Stat icon="flame" label="Kalori" val={sum('calorie')} theme={theme} />
+        <Stat icon="water" label={t('water_ml')} val={sum('water')} theme={theme} />
+        <Stat icon="flame" label={t('calorie')} val={sum('calorie')} theme={theme} />
       </View>
 
-      <Text style={s.h}>Kayıt ekle</Text>
+      <Text style={s.h}>{t('add_entry')}</Text>
       <View style={{ flexDirection: 'row', gap: 8 }}>
-        <Inp v={f.water} on={(v) => setF({ ...f, water: v })} ph="Su ml" />
-        <Inp v={f.calorie} on={(v) => setF({ ...f, calorie: v })} ph="Kalori" />
+        <Inp v={f.water} on={(v) => setF({ ...f, water: v })} ph={t('water_ml')} />
+        <Inp v={f.calorie} on={(v) => setF({ ...f, calorie: v })} ph={t('calorie')} />
       </View>
-      <TouchableOpacity style={[s.btn, { backgroundColor: theme }]} onPress={add}><Text style={s.btnText}>Ekle</Text></TouchableOpacity>
+      <TouchableOpacity style={[s.btn, { backgroundColor: theme }]} onPress={add}><Text style={s.btnText}>{t('add')}</Text></TouchableOpacity>
 
-      <Text style={s.h}>Geçmiş</Text>
+      <Text style={s.h}>{t('history')}</Text>
       {list.slice(0, 14).map((e) => (
         <View key={e.id} style={s.row}>
           <Text style={s.date}>{e.data.date}</Text>

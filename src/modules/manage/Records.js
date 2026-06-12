@@ -4,17 +4,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getEntries, createEntryFor, deleteEntry, getMembers } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
-// Detaylı vücut analizi alanları (Tanita/FormLab tarzı)
-export const RECORD_FIELDS = [
-  ['weight', 'Kilo (kg)'], ['fat', 'Yağ %'], ['fat_mass', 'Yağ Kütlesi (kg)'], ['muscle', 'Kas (kg)'],
-  ['water', 'Su %'], ['bone', 'Kemik (kg)'], ['bmi', 'BMI'], ['visceral', 'İç Yağ'],
-  ['metabolic_age', 'Metabolik Yaş'], ['bmr', 'Bazal Metabolizma'], ['protein', 'Protein %'], ['mineral', 'Mineral'],
-  ['waist', 'Bel (cm)'], ['hip', 'Kalça (cm)'], ['chest', 'Göğüs (cm)'], ['arm', 'Kol (cm)'],
-];
+// Detaylı vücut analizi alanları (Tanita/FormLab tarzı) — etiketler i18n fld_<key>
+export const RECORD_FIELDS = ['weight', 'fat', 'fat_mass', 'muscle', 'water', 'bone', 'bmi', 'visceral', 'metabolic_age', 'bmr', 'protein', 'mineral', 'waist', 'hip', 'chest', 'arm'];
 
 export default function ManageRecords({ businessId, theme }) {
+  const { t } = useLang();
   const [members, setMembers] = useState([]);
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,17 +29,17 @@ export default function ManageRecords({ businessId, theme }) {
   useEffect(() => { load(); }, [load]);
 
   const save = async () => {
-    if (!sel) return Alert.alert('Müşteri seç', 'Önce bir müşteri seç.');
-    if (!Object.values(f).some((v) => String(v).trim())) return Alert.alert('Boş', 'En az bir değer gir.');
+    if (!sel) return Alert.alert(t('select_customer'));
+    if (!Object.values(f).some((v) => String(v).trim())) return Alert.alert(t('empty'), t('enter_a_value'));
     setSaving(true);
     try {
       await createEntryFor(businessId, 'records', sel, { date: new Date().toISOString().slice(0, 10), ...f });
       setF({}); await load();
-    } catch (e) { Alert.alert('Hata', 'Kaydedilemedi'); } finally { setSaving(false); }
+    } catch (e) { Alert.alert(t('error'), t('not_saved')); } finally { setSaving(false); }
   };
-  const del = (id) => Alert.alert('Sil', 'Bu ölçüm silinsin mi?', [
-    { text: 'Vazgeç', style: 'cancel' },
-    { text: 'Sil', style: 'destructive', onPress: async () => { await deleteEntry(businessId, 'records', id); load(); } },
+  const del = (id) => Alert.alert(t('delete'), t('delete_record_q'), [
+    { text: t('cancel'), style: 'cancel' },
+    { text: t('delete'), style: 'destructive', onPress: async () => { await deleteEntry(businessId, 'records', id); load(); } },
   ]);
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
@@ -51,8 +48,8 @@ export default function ManageRecords({ businessId, theme }) {
 
   return (
     <ScrollView contentContainerStyle={s.wrap} keyboardShouldPersistTaps="handled">
-      <Text style={s.h}>Müşteri Seç</Text>
-      {members.length === 0 && <Text style={s.empty}>Aktif müşteri yok. "Kullanıcılar" ekranından hesap aç.</Text>}
+      <Text style={s.h}>{t('select_customer')}</Text>
+      {members.length === 0 && <Text style={s.empty}>{t('no_active_customers')}</Text>}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 4 }}>
         {members.map((m) => {
           const on = Number(sel) === Number(m.user_id);
@@ -66,22 +63,22 @@ export default function ManageRecords({ businessId, theme }) {
 
       {sel && (
         <>
-          <Text style={s.h}>{selName} — Yeni Ölçüm</Text>
+          <Text style={s.h}>{selName} — {t('new_measurement')}</Text>
           <View style={s.grid}>
-            {RECORD_FIELDS.map(([k, label]) => (
+            {RECORD_FIELDS.map((k) => (
               <View key={k} style={s.cell}>
-                <Text style={s.label}>{label}</Text>
+                <Text style={s.label}>{t('fld_' + k)}</Text>
                 <TextInput style={s.input} value={f[k] || ''} onChangeText={(v) => setF({ ...f, [k]: v })} keyboardType="decimal-pad" placeholder="—" placeholderTextColor="#C8C8D0" />
               </View>
             ))}
           </View>
-          <TextInput style={s.note} value={f.note || ''} onChangeText={(v) => setF({ ...f, note: v })} placeholder="Not (ops.)" placeholderTextColor="#B0B0C0" multiline />
+          <TextInput style={s.note} value={f.note || ''} onChangeText={(v) => setF({ ...f, note: v })} placeholder={t('note_opt')} placeholderTextColor="#B0B0C0" multiline />
           <TouchableOpacity style={[s.btn, { backgroundColor: theme }]} onPress={save} disabled={saving}>
-            {saving ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Kaydet</Text>}
+            {saving ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>{t('save')}</Text>}
           </TouchableOpacity>
 
-          <Text style={s.h}>Geçmiş ({recs.length})</Text>
-          {recs.length === 0 && <Text style={s.empty}>Bu müşteride ölçüm yok.</Text>}
+          <Text style={s.h}>{t('history')} ({recs.length})</Text>
+          {recs.length === 0 && <Text style={s.empty}>{t('no_record_customer')}</Text>}
           {recs.map((e) => (
             <View key={e.id} style={s.rec}>
               <View style={s.recTop}>
@@ -89,8 +86,8 @@ export default function ManageRecords({ businessId, theme }) {
                 <TouchableOpacity onPress={() => del(e.id)}><Ionicons name="trash-outline" size={18} color={COLORS.danger} /></TouchableOpacity>
               </View>
               <View style={s.recVals}>
-                {RECORD_FIELDS.filter(([k]) => e.data[k]).map(([k, label]) => (
-                  <View key={k} style={s.recValBox}><Text style={s.recValLabel}>{label.replace(/ \(.*\)/, '')}</Text><Text style={s.recVal}>{e.data[k]}</Text></View>
+                {RECORD_FIELDS.filter((k) => e.data[k]).map((k) => (
+                  <View key={k} style={s.recValBox}><Text style={s.recValLabel}>{t('fld_' + k).replace(/ \(.*\)/, '')}</Text><Text style={s.recVal}>{e.data[k]}</Text></View>
                 ))}
               </View>
               {e.data.note ? <Text style={s.recNote}>{e.data.note}</Text> : null}

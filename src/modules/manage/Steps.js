@@ -3,9 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, createItem, updateItem } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function ManageSteps({ businessId, theme }) {
+  const { t } = useLang();
   const [item, setItem] = useState(null);
   const [goal, setGoal] = useState('8000');
   const [loading, setLoading] = useState(true);
@@ -24,8 +26,8 @@ export default function ManageSteps({ businessId, theme }) {
       if (item) await updateItem(businessId, 'steps', item.id, { goal: g });
       else await createItem(businessId, 'steps', { goal: g });
       await load();
-      Alert.alert('Kaydedildi', `Günlük adım hedefi: ${g.toLocaleString('tr-TR')}`);
-    } catch (e) { Alert.alert('Hata', 'Kaydedilemedi'); } finally { setSaving(false); }
+      Alert.alert(t('saved'), `${t('goal_saved')}: ${g.toLocaleString('tr-TR')}`);
+    } catch (e) { Alert.alert(t('error'), t('not_saved')); } finally { setSaving(false); }
   };
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
@@ -33,13 +35,13 @@ export default function ManageSteps({ businessId, theme }) {
     <ScrollView contentContainerStyle={s.wrap}>
       <View style={[s.card, { borderColor: theme }]}>
         <Ionicons name="walk" size={28} color={theme} />
-        <Text style={s.title}>Adım Sayar</Text>
-        <Text style={s.desc}>Müşterilerin günlük adımı telefonlarının hareket sensöründen otomatik sayılır. Sen sadece hedefi belirlersin; herkes ilerlemesini kendi ekranında görür.</Text>
+        <Text style={s.title}>{t('step_counter')}</Text>
+        <Text style={s.desc}>{t('step_counter_desc')}</Text>
       </View>
-      <Text style={s.label}>Günlük adım hedefi</Text>
+      <Text style={s.label}>{t('daily_step_goal')}</Text>
       <TextInput style={s.input} value={goal} onChangeText={setGoal} keyboardType="number-pad" placeholder="8000" placeholderTextColor="#B0B0C0" />
       <TouchableOpacity style={[s.btn, { backgroundColor: theme }]} onPress={save} disabled={saving}>
-        {saving ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Kaydet</Text>}
+        {saving ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>{t('save')}</Text>}
       </TouchableOpacity>
       <View style={{ height: 30 }} />
     </ScrollView>

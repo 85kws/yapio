@@ -4,9 +4,11 @@ import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-nat
 import { Ionicons } from '@expo/vector-icons';
 import { Pedometer } from 'expo-sensors';
 import { getItems } from '../../api/client';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
 export default function Steps({ businessId, theme }) {
+  const { t } = useLang();
   const [available, setAvailable] = useState(null);
   const [live, setLive] = useState(0);
   const [goal, setGoal] = useState(8000);
@@ -37,7 +39,7 @@ export default function Steps({ businessId, theme }) {
     return (
       <View style={s.emptyWrap}>
         <Ionicons name="walk-outline" size={48} color={COLORS.muted} />
-        <Text style={s.emptyText}>Bu cihazda adım sayar desteklenmiyor veya hareket izni kapalı.</Text>
+        <Text style={s.emptyText}>{t('steps_not_supported')}</Text>
       </View>
     );
   }
@@ -52,16 +54,16 @@ export default function Steps({ businessId, theme }) {
       <View style={[s.hero, { backgroundColor: theme }]}>
         <Ionicons name="walk" size={30} color="#fff" />
         <Text style={s.steps}>{steps.toLocaleString('tr-TR')}</Text>
-        <Text style={s.stepsLabel}>bugünkü adım</Text>
+        <Text style={s.stepsLabel}>{t('steps_today')}</Text>
         <View style={s.barBg}><View style={[s.barFill, { width: `${pct}%` }]} /></View>
-        <Text style={s.goalText}>Hedef {goal.toLocaleString('tr-TR')} · %{pct}</Text>
+        <Text style={s.goalText}>{t('goal')} {goal.toLocaleString('tr-TR')} · %{pct}</Text>
       </View>
       <View style={s.stats}>
         <View style={s.stat}><Ionicons name="map-outline" size={20} color={theme} /><Text style={s.statVal}>{km}</Text><Text style={s.statLabel}>km</Text></View>
         <View style={s.stat}><Ionicons name="flame-outline" size={20} color={theme} /><Text style={s.statVal}>{kcal}</Text><Text style={s.statLabel}>kcal</Text></View>
-        <View style={s.stat}><Ionicons name="trophy-outline" size={20} color={theme} /><Text style={s.statVal}>%{pct}</Text><Text style={s.statLabel}>hedef</Text></View>
+        <View style={s.stat}><Ionicons name="trophy-outline" size={20} color={theme} /><Text style={s.statVal}>%{pct}</Text><Text style={s.statLabel}>{t('goal')}</Text></View>
       </View>
-      <Text style={s.note}>Adımlar telefonun hareket sensöründen okunur. Uygulamayı arada açman canlı sayımı günceller.</Text>
+      <Text style={s.note}>{t('steps_note')}</Text>
       <View style={{ height: 30 }} />
     </ScrollView>
   );
