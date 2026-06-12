@@ -61,6 +61,8 @@ const STRINGS = {
     steps_not_supported: 'Bu cihazda adım sayar desteklenmiyor veya hareket izni kapalı.', steps_today: 'bugünkü adım', goal: 'Hedef', steps_note: 'Adımlar telefonun hareket sensöründen okunur. Uygulamayı arada açman canlı sayımı günceller.', step_counter: 'Adım Sayar', step_counter_desc: 'Müşterilerin günlük adımı telefonlarının hareket sensöründen otomatik sayılır. Sen sadece hedefi belirlersin; herkes ilerlemesini kendi ekranında görür.', daily_step_goal: 'Günlük adım hedefi', goal_saved: 'Günlük adım hedefi',
     today: 'Bugün', add_entry: 'Kayıt ekle', water_ml: 'Su ml', calorie: 'Kalori',
     fld_weight: 'Kilo (kg)', fld_fat: 'Yağ %', fld_fat_mass: 'Yağ Kütlesi (kg)', fld_muscle: 'Kas (kg)', fld_water: 'Su %', fld_bone: 'Kemik (kg)', fld_bmi: 'BMI', fld_visceral: 'İç Yağ', fld_metabolic_age: 'Metabolik Yaş', fld_bmr: 'Bazal Metabolizma', fld_protein: 'Protein %', fld_mineral: 'Mineral', fld_waist: 'Bel (cm)', fld_hip: 'Kalça (cm)', fld_chest: 'Göğüs (cm)', fld_arm: 'Kol (cm)',
+    working_hours: 'Çalışma Saatleri', open_time: 'Açılış', close_time: 'Kapanış', services: 'Hizmetler', service_name_ph: 'Hizmet adı', appointments: 'Randevular', no_appointments: 'Henüz randevu yok.', cancel_short: 'İptal', confirmed_short: '✓ onaylı', hours_saved: 'Çalışma saatleri',
+    my_appointments: 'Randevularım', select_service: 'Hizmet seç', no_service_yet: 'Henüz hizmet eklenmemiş.', select_date: 'Tarih seç', available_time: 'Uygun saat', no_slot: 'Bu güne uygun saat yok.', booked: 'Randevu alındı', booking_failed: 'Randevu alınamadı', cancel_appt_q: 'Randevu iptal edilsin mi?', cancel_yes: 'İptal Et', free: 'boş', full_closed: 'dolu/kapalı', confirmed: 'onaylandı', dk: 'dk',
   },
   en: {
     tagline: 'App store for businesses',
@@ -119,6 +121,8 @@ const STRINGS = {
     steps_not_supported: 'Step counter is not supported on this device or motion permission is off.', steps_today: 'steps today', goal: 'Goal', steps_note: "Steps are read from your phone's motion sensor. Open the app occasionally to update the live count.", step_counter: 'Step Counter', step_counter_desc: "Customers' daily steps are counted automatically from their phone's motion sensor. You just set the goal; everyone sees their own progress.", daily_step_goal: 'Daily step goal', goal_saved: 'Daily step goal',
     today: 'Today', add_entry: 'Add entry', water_ml: 'Water ml', calorie: 'Calories',
     fld_weight: 'Weight (kg)', fld_fat: 'Fat %', fld_fat_mass: 'Fat Mass (kg)', fld_muscle: 'Muscle (kg)', fld_water: 'Water %', fld_bone: 'Bone (kg)', fld_bmi: 'BMI', fld_visceral: 'Visceral Fat', fld_metabolic_age: 'Metabolic Age', fld_bmr: 'BMR', fld_protein: 'Protein %', fld_mineral: 'Mineral', fld_waist: 'Waist (cm)', fld_hip: 'Hip (cm)', fld_chest: 'Chest (cm)', fld_arm: 'Arm (cm)',
+    working_hours: 'Working Hours', open_time: 'Open', close_time: 'Close', services: 'Services', service_name_ph: 'Service name', appointments: 'Appointments', no_appointments: 'No appointments yet.', cancel_short: 'Cancel', confirmed_short: '✓ confirmed', hours_saved: 'Working hours',
+    my_appointments: 'My Appointments', select_service: 'Select service', no_service_yet: 'No services added yet.', select_date: 'Select date', available_time: 'Available time', no_slot: 'No times available this day.', booked: 'Appointment booked', booking_failed: 'Could not book', cancel_appt_q: 'Cancel appointment?', cancel_yes: 'Cancel', free: 'free', full_closed: 'full/closed', confirmed: 'confirmed', dk: 'min',
   },
 };
 

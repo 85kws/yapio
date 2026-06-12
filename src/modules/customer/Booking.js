@@ -5,14 +5,18 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, getEntries, createEntry, updateEntry, bookingSlots } from '../../api/client';
 import { scheduleApptReminder } from '../../notifications/setup';
+import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
-const WD = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']; // pazartesi-başı
+const WD_TR = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+const WD_EN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAYS_N = 28; // 4 hafta ileri
 const fmtDate = (d) => d.toISOString().slice(0, 10);
 const mondayIdx = (d) => (d.getDay() + 6) % 7; // Pzt=0 ... Paz=6
 
 export default function Booking({ businessId, theme }) {
+  const { t, lang } = useLang();
+  const WD = lang === 'en' ? WD_EN : WD_TR;
   const [services, setServices] = useState([]);
   const [mine, setMine] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,15 +69,15 @@ export default function Booking({ businessId, theme }) {
         duration_min: service.data.duration_min || 30, date, time,
       });
       scheduleApptReminder(date, time, service.data.name).catch(() => {});
-      Alert.alert('Randevu alındı', `${service.data.name} · ${date} ${time}`);
+      Alert.alert(t('booked'), `${service.data.name} · ${date} ${time}`);
       setService(null); await load();
-    } catch (e) { Alert.alert('Hata', e?.response?.data?.error || 'Randevu alınamadı'); }
+    } catch (e) { Alert.alert(t('error'), e?.response?.data?.error || t('booking_failed')); }
     finally { setBooking(false); }
   };
 
-  const cancel = (id) => Alert.alert('İptal', 'Randevu iptal edilsin mi?', [
-    { text: 'Vazgeç', style: 'cancel' },
-    { text: 'İptal Et', style: 'destructive', onPress: async () => { await updateEntry(businessId, 'booking', id, { status: 'cancelled' }); load(); } },
+  const cancel = (id) => Alert.alert(t('cancel_short'), t('cancel_appt_q'), [
+    { text: t('cancel'), style: 'cancel' },
+    { text: t('cancel_yes'), style: 'destructive', onPress: async () => { await updateEntry(businessId, 'booking', id, { status: 'cancelled' }); load(); } },
   ]);
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
@@ -91,13 +95,13 @@ export default function Booking({ businessId, theme }) {
       {/* Randevularım */}
       {mine.length > 0 && (
         <View style={s.block}>
-          <Text style={s.h}>Randevularım</Text>
+          <Text style={s.h}>{t('my_appointments')}</Text>
           {mine.map((e) => (
             <View key={e.id} style={s.appt}>
               <View style={[s.apptBar, { backgroundColor: theme }]} />
               <View style={{ flex: 1 }}>
                 <Text style={s.apptName}>{e.data.service_name}</Text>
-                <Text style={s.apptMeta}>{e.data.date} · {e.data.time}{e.status === 'confirmed' ? ' · onaylandı' : ''}</Text>
+                <Text style={s.apptMeta}>{e.data.date} · {e.data.time}{e.status === 'confirmed' ? ` · ${t('confirmed')}` : ''}</Text>
               </View>
               <TouchableOpacity onPress={() => cancel(e.id)}><Ionicons name="close-circle" size={24} color={COLORS.muted} /></TouchableOpacity>
             </View>
@@ -106,13 +110,13 @@ export default function Booking({ businessId, theme }) {
       )}
 
       {/* Hizmet seç */}
-      <Text style={s.h}>Hizmet seç</Text>
-      {services.length === 0 && <Text style={s.empty}>Henüz hizmet eklenmemiş.</Text>}
+      <Text style={s.h}>{t('select_service')}</Text>
+      {services.length === 0 && <Text style={s.empty}>{t('no_service_yet')}</Text>}
       {services.map((sv) => (
         <TouchableOpacity key={sv.id} style={[s.svc, service?.id === sv.id && { borderColor: theme, borderWidth: 2 }]} onPress={() => setService(sv)}>
           <View style={{ flex: 1 }}>
             <Text style={s.svcName}>{sv.data.name}</Text>
-            <Text style={s.svcMeta}>{sv.data.duration_min || 30} dk{sv.data.price ? ` · ${sv.data.price} ₺` : ''}</Text>
+            <Text style={s.svcMeta}>{sv.data.duration_min || 30} {t('dk')}{sv.data.price ? ` · ${sv.data.price} ₺` : ''}</Text>
           </View>
           {service?.id === sv.id ? <Ionicons name="checkmark-circle" size={22} color={theme} /> : <Ionicons name="chevron-forward" size={20} color={COLORS.muted} />}
         </TouchableOpacity>
@@ -122,7 +126,7 @@ export default function Booking({ businessId, theme }) {
       {service && (
         <>
           <View style={s.calHead}>
-            <Text style={s.h}>Tarih seç</Text>
+            <Text style={s.h}>{t('select_date')}</Text>
             {availLoading ? <ActivityIndicator color={theme} size="small" /> : null}
           </View>
           <Text style={s.month}>{monthLabel}</Text>
@@ -156,13 +160,13 @@ export default function Booking({ businessId, theme }) {
             </View>
           ))}
           <View style={s.legend}>
-            <View style={[s.dot, { backgroundColor: theme }]} /><Text style={s.legendText}>boş</Text>
-            <View style={[s.dot, { backgroundColor: COLORS.border, marginLeft: 14 }]} /><Text style={s.legendText}>dolu/kapalı</Text>
+            <View style={[s.dot, { backgroundColor: theme }]} /><Text style={s.legendText}>{t('free')}</Text>
+            <View style={[s.dot, { backgroundColor: COLORS.border, marginLeft: 14 }]} /><Text style={s.legendText}>{t('full_closed')}</Text>
           </View>
 
-          <Text style={s.h}>Uygun saat</Text>
+          <Text style={s.h}>{t('available_time')}</Text>
           {availLoading ? <ActivityIndicator color={theme} /> : daySlots.length === 0 ? (
-            <Text style={s.empty}>Bu güne uygun saat yok.</Text>
+            <Text style={s.empty}>{t('no_slot')}</Text>
           ) : (
             <View style={s.slots}>
               {daySlots.map((t) => (
