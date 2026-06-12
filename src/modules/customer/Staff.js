@@ -4,8 +4,10 @@ import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-nat
 import { Ionicons } from '@expo/vector-icons';
 import { getItems } from '../../api/client';
 import { COLORS } from '../../theme';
+import { useLang } from '../../i18n';
 
 export default function Staff({ businessId, theme }) {
+  const { t } = useLang();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const load = useCallback(async () => {
@@ -14,7 +16,7 @@ export default function Staff({ businessId, theme }) {
   useEffect(() => { load(); }, [load]);
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
-  if (!items.length) return <View style={s.empty}><Ionicons name="people-outline" size={48} color={COLORS.muted} /><Text style={s.emptyText}>Ekip bilgisi yok.</Text></View>;
+  if (!items.length) return <View style={s.empty}><Ionicons name="people-outline" size={48} color={COLORS.muted} /><Text style={s.emptyText}>{t('no_team')}</Text></View>;
 
   return (
     <ScrollView contentContainerStyle={s.wrap}>

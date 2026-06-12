@@ -7,9 +7,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { getStorefront, getSectors } from '../../src/api/client';
 import { COLORS, SIZES } from '../../src/theme';
 import { AppIcon, sectorIcon } from '../../src/icons';
+import { useLang } from '../../src/i18n';
 
 export default function Storefront() {
   const router = useRouter();
+  const { t } = useLang();
   const [apps, setApps] = useState([]);
   const [sectors, setSectors] = useState([]);
   const [search, setSearch] = useState('');
@@ -29,7 +31,7 @@ export default function Storefront() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <Text style={s.title}>Vitrin</Text>
+      <Text style={s.title}>{t('tab_storefront')}</Text>
       <View style={s.searchBox}>
         <Ionicons name="search" size={18} color={COLORS.muted} />
         <TextInput
@@ -37,7 +39,7 @@ export default function Storefront() {
           value={search}
           onChangeText={setSearch}
           onSubmitEditing={load}
-          placeholder="İşletme ara..."
+          placeholder={t('search_business')}
           placeholderTextColor="#B0B0C0"
           returnKeyType="search"
         />
@@ -45,7 +47,7 @@ export default function Storefront() {
 
       <View style={{ height: 44 }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chips}>
-          <Chip label="Tümü" active={!sector} onPress={() => { setSector(null); }} />
+          <Chip label={t('all')} active={!sector} onPress={() => { setSector(null); }} />
           {sectors.map((sec) => (
             <Chip key={sec.key} iconName={sectorIcon(sec.key)} label={sec.name} active={sector === sec.key} onPress={() => setSector(sec.key)} />
           ))}
@@ -57,7 +59,7 @@ export default function Storefront() {
         keyExtractor={(x) => String(x.id)}
         contentContainerStyle={s.list}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListEmptyComponent={<Text style={s.empty}>Bu filtrede aktif app yok.{'\n'}İşletmem sekmesinden kendi app'ini yayınla.</Text>}
+        ListEmptyComponent={<Text style={s.empty}>{t('no_apps_filter')}</Text>}
         renderItem={({ item }) => {
           const theme = item.theme_json?.color || COLORS.primary;
           return (
@@ -65,7 +67,7 @@ export default function Storefront() {
               <AppIcon sectorKey={item.sector_key} color={theme} size={54} logo={item.logo_url} />
               <View style={{ flex: 1 }}>
                 <Text style={s.cardName}>{item.name}</Text>
-                <Text style={s.cardSector}>{item.sector_name || 'İşletme'}</Text>
+                <Text style={s.cardSector}>{item.sector_name || t('business')}</Text>
                 {item.description ? <Text style={s.cardDesc} numberOfLines={1}>{item.description}</Text> : null}
               </View>
               {item.installed

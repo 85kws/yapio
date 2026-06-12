@@ -6,9 +6,11 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { adminPending, adminApprove, adminReject } from '../../src/api/client';
 import { COLORS, SIZES } from '../../src/theme';
+import { useLang } from '../../src/i18n';
 
 export default function AdminSellers() {
   const router = useRouter();
+  const { t } = useLang();
   const [list, setList] = useState([]);
 
   const load = useCallback(async () => {
@@ -31,21 +33,21 @@ export default function AdminSellers() {
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={22} color={COLORS.primary} />
-          <Text style={s.back}>Geri</Text>
+          <Text style={s.back}>{t('back')}</Text>
         </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={{ padding: SIZES.pad, paddingBottom: 40 }}>
-        <Text style={s.title}>Satıcı Başvuruları</Text>
-        <Text style={s.sub}>{list.length} bekleyen başvuru</Text>
+        <Text style={s.title}>{t('seller_apps')}</Text>
+        <Text style={s.sub}>{list.length} {t('pending_apps_count')}</Text>
 
-        {list.length === 0 && <Text style={s.empty}>Bekleyen başvuru yok.</Text>}
+        {list.length === 0 && <Text style={s.empty}>{t('no_pending_apps')}</Text>}
 
         {list.map((a) => {
           const p = a.seller_profile || {};
           return (
             <View key={a.id} style={s.card}>
               <Text style={s.name}>{p.legal_name || a.name}</Text>
-              <Text style={s.badge}>{p.account_type === 'company' ? 'Şirket' : 'Şahıs'}</Text>
+              <Text style={s.badge}>{p.account_type === 'company' ? t('company') : t('individual')}</Text>
               <Row k="Unvan" v={p.company_title} />
               <Row k="TCKN" v={p.national_id} />
               <Row k="Vergi No" v={p.tax_no} />
@@ -56,11 +58,11 @@ export default function AdminSellers() {
               <Row k="Web" v={p.website} />
               <View style={s.actions}>
                 <TouchableOpacity style={[s.btn, s.reject]} onPress={() => reject(a.id)}>
-                  <Text style={s.rejectText}>Reddet</Text>
+                  <Text style={s.rejectText}>{t('reject')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[s.btn, s.approve]} onPress={() => approve(a.id)}>
                   <Ionicons name="checkmark" size={16} color="#fff" />
-                  <Text style={s.approveText}>Onayla</Text>
+                  <Text style={s.approveText}>{t('approve')}</Text>
                 </TouchableOpacity>
               </View>
             </View>

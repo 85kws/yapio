@@ -7,11 +7,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { adminBusinesses, adminBusinessAction } from '../../src/api/client';
 import { COLORS, SIZES } from '../../src/theme';
 import { AppIcon } from '../../src/icons';
-
-const STATUS = { draft: { t: 'Taslak', c: COLORS.muted }, active: { t: 'Yayında', c: COLORS.success }, suspended: { t: 'Askıda', c: COLORS.danger } };
+import { useLang } from '../../src/i18n';
 
 export default function AdminBusinesses() {
   const router = useRouter();
+  const { t } = useLang();
+  const STATUS = { draft: { label: t('st_draft'), c: COLORS.muted }, active: { label: t('st_active'), c: COLORS.success }, suspended: { label: t('st_suspended'), c: COLORS.danger } };
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,10 +26,10 @@ export default function AdminBusinesses() {
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}><Ionicons name="chevron-back" size={22} color={COLORS.primary} /><Text style={s.back}>Geri</Text></TouchableOpacity>
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}><Ionicons name="chevron-back" size={22} color={COLORS.primary} /><Text style={s.back}>{t('back')}</Text></TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={{ padding: SIZES.pad, paddingBottom: 40 }}>
-        <Text style={s.title}>Tüm İşletmeler</Text>
+        <Text style={s.title}>{t('all_businesses')}</Text>
         {loading && <ActivityIndicator color={COLORS.primary} style={{ marginTop: 20 }} />}
         {list.map((b) => {
           const st = STATUS[b.status] || STATUS.draft;
@@ -39,14 +40,14 @@ export default function AdminBusinesses() {
                 <AppIcon sectorKey={b.sector_key} color={theme} size={46} />
                 <View style={{ flex: 1 }}>
                   <Text style={s.name}>{b.name}</Text>
-                  <Text style={s.owner}>{b.owner_name} · <Text style={{ color: st.c, fontWeight: '700' }}>{st.t}</Text>{b.access_mode === 'private' ? ' · özel' : ''}</Text>
+                  <Text style={s.owner}>{b.owner_name} · <Text style={{ color: st.c, fontWeight: '700' }}>{st.label}</Text>{b.access_mode === 'private' ? ` · ${t('private_short')}` : ''}</Text>
                 </View>
               </TouchableOpacity>
               <View style={s.actions}>
                 {b.status === 'suspended' ? (
-                  <TouchableOpacity style={[s.btn, { backgroundColor: COLORS.success }]} onPress={() => act(b, 'activate')}><Text style={s.btnText}>Aktifleştir</Text></TouchableOpacity>
+                  <TouchableOpacity style={[s.btn, { backgroundColor: COLORS.success }]} onPress={() => act(b, 'activate')}><Text style={s.btnText}>{t('activate')}</Text></TouchableOpacity>
                 ) : (
-                  <TouchableOpacity style={[s.btn, { backgroundColor: COLORS.danger }]} onPress={() => act(b, 'suspend')}><Text style={s.btnText}>Askıya Al</Text></TouchableOpacity>
+                  <TouchableOpacity style={[s.btn, { backgroundColor: COLORS.danger }]} onPress={() => act(b, 'suspend')}><Text style={s.btnText}>{t('suspend')}</Text></TouchableOpacity>
                 )}
               </View>
             </View>

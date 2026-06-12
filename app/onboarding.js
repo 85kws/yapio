@@ -9,9 +9,11 @@ import { COLORS, SIZES } from '../src/theme';
 import { sectorIcon, moduleIcon } from '../src/icons';
 import { MODULE_INFO } from '../src/modules';
 import ModuleInfoModal from '../src/components/ModuleInfoModal';
+import { useLang } from '../src/i18n';
 
 export default function Onboarding() {
   const router = useRouter();
+  const { t } = useLang();
   const [step, setStep] = useState(1);
   const [sectors, setSectors] = useState([]);
   const [templates, setTemplates] = useState([]);
@@ -46,16 +48,16 @@ export default function Onboarding() {
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => (step > 1 ? setStep(step - 1) : router.back())}>
           <Ionicons name="chevron-back" size={22} color={COLORS.primary} />
-          <Text style={s.back}>Geri</Text>
+          <Text style={s.back}>{t('back')}</Text>
         </TouchableOpacity>
-        <Text style={s.stepLabel}>Adım {step}/3</Text>
+        <Text style={s.stepLabel}>{t('step_label')} {step}/3</Text>
         <View style={{ width: 60 }} />
       </View>
       <View style={s.progress}><View style={[s.progressFill, { width: `${(step / 3) * 100}%` }]} /></View>
 
       {step === 1 && (
         <>
-          <Text style={s.title}>Sektörünü seç</Text>
+          <Text style={s.title}>{t('choose_sector')}</Text>
           <ScrollView contentContainerStyle={s.gridWrap}>
             {sectors.map((sec) => (
               <TouchableOpacity key={sec.key} style={[s.sectorCard, sector?.key === sec.key && s.sectorActive]} onPress={() => { setSector(sec); setStep(2); }}>
@@ -69,8 +71,8 @@ export default function Onboarding() {
 
       {step === 2 && (
         <>
-          <Text style={s.title}>Şablon seç</Text>
-          <Text style={s.sub}>{sector?.name} için hazır kurulum. Özelliğe dokun → ne yaptığını gör:</Text>
+          <Text style={s.title}>{t('choose_template')}</Text>
+          <Text style={s.sub}>{sector?.name} {t('template_sub')}</Text>
           <ScrollView contentContainerStyle={{ padding: SIZES.pad }}>
             {templates.map((t) => (
               <TouchableOpacity key={t.key} style={[s.tplCard, template?.key === t.key && { borderColor: t.color, borderWidth: 2 }]} onPress={() => setTemplate(t)}>
@@ -90,7 +92,7 @@ export default function Onboarding() {
               </TouchableOpacity>
             ))}
             <TouchableOpacity style={s.nextBtn} onPress={() => setStep(3)} disabled={!template}>
-              <Text style={s.nextText}>Devam</Text>
+              <Text style={s.nextText}>{t('continue_btn')}</Text>
             </TouchableOpacity>
           </ScrollView>
         </>
@@ -98,15 +100,15 @@ export default function Onboarding() {
 
       {step === 3 && (
         <ScrollView contentContainerStyle={{ padding: SIZES.pad }}>
-          <Text style={s.title}>İşletme bilgileri</Text>
-          <Field label="İşletme adı *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="Örn: Yiğit Berber" />
-          <Field label="Kısa açıklama" value={form.description} onChange={(v) => setForm({ ...form, description: v })} placeholder="Müşteriye görünecek tanıtım" />
-          <Field label="Adres" value={form.address} onChange={(v) => setForm({ ...form, address: v })} placeholder="Çankaya, Ankara" />
-          <Field label="Telefon" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+90..." keyboardType="phone-pad" />
+          <Text style={s.title}>{t('business_info')}</Text>
+          <Field label={t('business_name_req')} value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder={t('biz_name_ph')} />
+          <Field label={t('short_desc')} value={form.description} onChange={(v) => setForm({ ...form, description: v })} placeholder={t('desc_ph2')} />
+          <Field label={t('address_label')} value={form.address} onChange={(v) => setForm({ ...form, address: v })} placeholder={t('addr_ph')} />
+          <Field label={t('phone_label')} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+90..." keyboardType="phone-pad" />
           <TouchableOpacity style={s.createBtn} onPress={create} disabled={busy}>
-            {busy ? <ActivityIndicator color="#fff" /> : <Text style={s.createText}>App'i Oluştur</Text>}
+            {busy ? <ActivityIndicator color="#fff" /> : <Text style={s.createText}>{t('create_app')}</Text>}
           </TouchableOpacity>
-          <Text style={s.hint}>App taslak olarak kaydedilir. Sonra düzenleyip yayınlarsın.</Text>
+          <Text style={s.hint}>{t('onboarding_hint')}</Text>
         </ScrollView>
       )}
 

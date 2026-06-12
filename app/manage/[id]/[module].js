@@ -9,9 +9,11 @@ import { COLORS } from '../../../src/theme';
 import { moduleIcon } from '../../../src/icons';
 import { MODULE_INFO } from '../../../src/modules';
 import { MANAGE } from '../../../src/modules/registry';
+import { useLang } from '../../../src/i18n';
 
 export default function ManageModule() {
   const router = useRouter();
+  const { t } = useLang();
   const { id, module } = useLocalSearchParams();
   const [biz, setBiz] = useState(null);
 
@@ -37,7 +39,7 @@ export default function ManageModule() {
       ) : (
         <View style={s.soon}>
           <Ionicons name={moduleIcon(module)} size={56} color={COLORS.muted} />
-          <Text style={s.soonText}>Bu modülün yönetimi yakında.</Text>
+          <Text style={s.soonText}>{t('mod_soon')}</Text>
         </View>
       )}
     </SafeAreaView>

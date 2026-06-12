@@ -7,10 +7,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { sellerApply } from '../src/api/client';
 import { useAuth } from '../src/context/AuthContext';
 import { COLORS, SIZES } from '../src/theme';
+import { useLang } from '../src/i18n';
 
 export default function SellerApply() {
   const router = useRouter();
   const { setUser } = useAuth();
+  const { t } = useLang();
   const [type, setType] = useState('individual');
   const [f, setF] = useState({ legal_name: '', company_title: '', national_id: '', tax_no: '', tax_office: '', address: '', city: '', phone: '', email: '', website: '', business_type: '', employee_count: '', offerings: '' });
   const [hasLocation, setHasLocation] = useState('yes');
@@ -39,7 +41,7 @@ export default function SellerApply() {
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={22} color={COLORS.primary} />
-          <Text style={s.back}>Geri</Text>
+          <Text style={s.back}>{t('back')}</Text>
         </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={{ padding: SIZES.pad, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
@@ -48,7 +50,7 @@ export default function SellerApply() {
 
         <Text style={s.label}>Hesap tipi</Text>
         <View style={s.segment}>
-          {[['individual', 'Şahıs'], ['company', 'Şirket']].map(([v, l]) => (
+          {[['individual', t('individual')], ['company', t('company')]].map(([v, l]) => (
             <TouchableOpacity key={v} style={[s.segItem, type === v && s.segActive]} onPress={() => setType(v)}>
               <Text style={[s.segText, type === v && s.segTextActive]}>{l}</Text>
             </TouchableOpacity>

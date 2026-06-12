@@ -4,8 +4,10 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Activi
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, createItem, deleteItem, getEntries, updateEntry } from '../../api/client';
 import { COLORS } from '../../theme';
+import { useLang } from '../../i18n';
 
 export default function ManageSubscriptions({ businessId, theme }) {
+  const { t } = useLang();
   const [plans, setPlans] = useState([]);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);

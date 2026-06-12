@@ -6,9 +6,11 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { getInstalls } from '../../src/api/client';
 import { COLORS, SIZES } from '../../src/theme';
 import { AppIcon } from '../../src/icons';
+import { useLang } from '../../src/i18n';
 
 export default function MyApps() {
   const router = useRouter();
+  const { t } = useLang();
   const [apps, setApps] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -20,14 +22,14 @@ export default function MyApps() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <Text style={s.title}>App'lerim</Text>
+      <Text style={s.title}>{t('tab_myapps')}</Text>
       <FlatList
         data={apps}
         keyExtractor={(x) => String(x.id)}
         numColumns={3}
         contentContainerStyle={s.grid}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListEmptyComponent={<Text style={s.empty}>Henüz app indirmedin.{'\n'}Vitrin'den keşfet.</Text>}
+        ListEmptyComponent={<Text style={s.empty}>{t('no_apps_yet')}</Text>}
         renderItem={({ item }) => {
           const theme = item.theme_json?.color || COLORS.primary;
           return (

@@ -4,8 +4,10 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Activi
 import { Ionicons } from '@expo/vector-icons';
 import { getEntries, createEntry, deleteEntry } from '../../api/client';
 import { COLORS } from '../../theme';
+import { useLang } from '../../i18n';
 
 export default function ManagePayments({ businessId, theme }) {
+  const { t } = useLang();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [f, setF] = useState({ customer_name: '', amount: '', note: '' });
@@ -27,23 +29,23 @@ export default function ManagePayments({ businessId, theme }) {
   return (
     <ScrollView contentContainerStyle={s.wrap}>
       <View style={[s.totalBox, { backgroundColor: theme }]}>
-        <Text style={s.totalLabel}>Toplam Tahsilat</Text>
+        <Text style={s.totalLabel}>{t('total_income')}</Text>
         <Text style={s.totalNum}>{total.toLocaleString('tr-TR')} ₺</Text>
       </View>
 
-      <Text style={s.h}>Ödeme ekle</Text>
-      <TextInput style={s.input} value={f.customer_name} onChangeText={(v) => setF({ ...f, customer_name: v })} placeholder="Müşteri adı" placeholderTextColor="#B0B0C0" />
+      <Text style={s.h}>{t('add_payment')}</Text>
+      <TextInput style={s.input} value={f.customer_name} onChangeText={(v) => setF({ ...f, customer_name: v })} placeholder={t('customer_name_ph')} placeholderTextColor="#B0B0C0" />
       <View style={{ flexDirection: 'row', gap: 8 }}>
-        <TextInput style={[s.input, { flex: 1 }]} value={f.amount} onChangeText={(v) => setF({ ...f, amount: v })} placeholder="Tutar ₺" keyboardType="number-pad" placeholderTextColor="#B0B0C0" />
-        <TextInput style={[s.input, { flex: 2 }]} value={f.note} onChangeText={(v) => setF({ ...f, note: v })} placeholder="Not (ops.)" placeholderTextColor="#B0B0C0" />
+        <TextInput style={[s.input, { flex: 1 }]} value={f.amount} onChangeText={(v) => setF({ ...f, amount: v })} placeholder={t('amount_ph')} keyboardType="number-pad" placeholderTextColor="#B0B0C0" />
+        <TextInput style={[s.input, { flex: 2 }]} value={f.note} onChangeText={(v) => setF({ ...f, note: v })} placeholder={t('note_opt')} placeholderTextColor="#B0B0C0" />
       </View>
-      <TouchableOpacity style={[s.btn, { backgroundColor: theme }]} onPress={add}><Text style={s.btnText}>Kaydet</Text></TouchableOpacity>
+      <TouchableOpacity style={[s.btn, { backgroundColor: theme }]} onPress={add}><Text style={s.btnText}>{t('save')}</Text></TouchableOpacity>
 
-      <Text style={s.h}>Kayıtlar ({list.length})</Text>
+      <Text style={s.h}>{t('payment_records')} ({list.length})</Text>
       {list.map((e) => (
         <View key={e.id} style={s.row}>
           <View style={{ flex: 1 }}>
-            <Text style={s.name}>{e.data.customer_name || 'Müşteri'} · {e.data.amount} ₺</Text>
+            <Text style={s.name}>{e.data.customer_name || t('customer_fallback')} · {e.data.amount} ₺</Text>
             <Text style={s.meta}>{e.data.date}{e.data.note ? ` — ${e.data.note}` : ''}</Text>
           </View>
           <TouchableOpacity onPress={() => deleteEntry(businessId, 'payments', e.id).then(load)}><Ionicons name="trash-outline" size={20} color={COLORS.danger} /></TouchableOpacity>

@@ -4,8 +4,10 @@ import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-nat
 import { Ionicons } from '@expo/vector-icons';
 import { getEntries } from '../../api/client';
 import { COLORS } from '../../theme';
+import { useLang } from '../../i18n';
 
 export default function Payments({ businessId, theme }) {
+  const { t } = useLang();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const load = useCallback(async () => {
@@ -14,19 +16,19 @@ export default function Payments({ businessId, theme }) {
   useEffect(() => { load(); }, [load]);
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
-  if (!list.length) return <View style={s.empty}><Ionicons name="card-outline" size={48} color={COLORS.muted} /><Text style={s.emptyText}>Ödeme kaydın yok.</Text></View>;
+  if (!list.length) return <View style={s.empty}><Ionicons name="card-outline" size={48} color={COLORS.muted} /><Text style={s.emptyText}>{t('no_payments')}</Text></View>;
 
   const total = list.reduce((a, e) => a + (e.data.amount || 0), 0);
   return (
     <ScrollView contentContainerStyle={s.wrap}>
       <View style={[s.totalBox, { backgroundColor: theme }]}>
-        <Text style={s.totalLabel}>Toplam Ödeme</Text>
+        <Text style={s.totalLabel}>{t('total_paid')}</Text>
         <Text style={s.totalNum}>{total.toLocaleString('tr-TR')} ₺</Text>
       </View>
       {list.map((e) => (
         <View key={e.id} style={s.row}>
           <View style={{ flex: 1 }}><Text style={s.amount}>{e.data.amount} ₺</Text><Text style={s.meta}>{e.data.date}{e.data.note ? ` — ${e.data.note}` : ''}</Text></View>
-          <View style={[s.pill, { backgroundColor: COLORS.success + '18' }]}><Text style={[s.pillText, { color: COLORS.success }]}>Ödendi</Text></View>
+          <View style={[s.pill, { backgroundColor: COLORS.success + '18' }]}><Text style={[s.pillText, { color: COLORS.success }]}>{t('paid_label')}</Text></View>
         </View>
       ))}
       <View style={{ height: 20 }} />
