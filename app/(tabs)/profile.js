@@ -5,10 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
+import { useLang } from '../../src/i18n';
 import { COLORS, SIZES } from '../../src/theme';
 
 export default function Profile() {
   const router = useRouter();
+  const { t, lang, setLang } = useLang();
   const { user, logout, refresh } = useAuth();
 
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
@@ -19,7 +21,7 @@ export default function Profile() {
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-        <Text style={s.headerTitle}>Profil</Text>
+        <Text style={s.headerTitle}>{t('tab_profile')}</Text>
 
         <View style={s.userCard}>
           <View style={s.avatar}><Text style={s.avatarText}>{(user?.name || '?')[0].toUpperCase()}</Text></View>
@@ -60,7 +62,7 @@ export default function Profile() {
         {status === 'approved' && (
           <>
             <Card icon="briefcase" title="İşletmelerim" desc="App'lerini yönet, yeni işletme ekle." onPress={() => router.push('/my-businesses')} />
-            <Card icon="card-outline" title="Ödeme Bağlama Rehberi" desc="iyzico/Stripe nasıl bağlanır." onPress={() => router.push('/payment-guide')} />
+            <Card icon="help-buoy-outline" title="Kılavuz" desc="Tüm özellikler nasıl kullanılır." onPress={() => router.push('/guide')} />
           </>
         )}
 
@@ -77,6 +79,19 @@ export default function Profile() {
         <Text style={s.sectionLabel}>Yardım & Yasal</Text>
         <Card icon="mail-outline" title="Destek & Geri Bildirim" desc="Bize yaz: o.y.baser@gmail.com" onPress={() => Linking.openURL('mailto:o.y.baser@gmail.com?subject=yapp%20Geri%20Bildirim')} />
         <Card icon="document-text-outline" title="Kullanım Sözleşmesi" desc="Şartlar ve koşullar." onPress={() => router.push('/terms')} />
+
+        <Text style={s.sectionLabel}>{t('settings')}</Text>
+        <View style={s.langCard}>
+          <View style={s.cardIcon}><Ionicons name="language-outline" size={22} color={COLORS.primary} /></View>
+          <Text style={s.langLabel}>{t('language')}</Text>
+          <View style={s.langSeg}>
+            {[['tr', 'Türkçe'], ['en', 'English']].map(([l, lbl]) => (
+              <TouchableOpacity key={l} style={[s.langBtn, lang === l && { backgroundColor: COLORS.primary }]} onPress={() => setLang(l)}>
+                <Text style={[s.langBtnText, lang === l && { color: '#fff' }]}>{lbl}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
 
         <TouchableOpacity style={s.logoutBtn} onPress={doLogout}>
           <Ionicons name="log-out-outline" size={20} color={COLORS.danger} />
@@ -126,4 +141,9 @@ const s = StyleSheet.create({
   infoDesc: { fontSize: 13, color: COLORS.muted, marginTop: 2 },
   logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: SIZES.pad, marginTop: 20, backgroundColor: '#fff', borderRadius: 14, paddingVertical: 16, borderWidth: 1, borderColor: COLORS.border },
   logoutText: { color: COLORS.danger, fontWeight: '700', fontSize: 16 },
+  langCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.card, borderRadius: 14, marginHorizontal: SIZES.pad, marginBottom: 10, padding: 16, gap: 14 },
+  langLabel: { flex: 1, fontSize: 16, fontWeight: '700', color: COLORS.text },
+  langSeg: { flexDirection: 'row', backgroundColor: '#ECECF4', borderRadius: 10, padding: 3 },
+  langBtn: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 8 },
+  langBtnText: { fontWeight: '700', color: COLORS.muted, fontSize: 13 },
 });

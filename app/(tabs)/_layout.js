@@ -3,10 +3,12 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../src/theme';
 import { initNotifications, registerForPush } from '../../src/notifications/setup';
+import { useLang } from '../../src/i18n';
 
 const tabIcon = (name) => ({ color, size }) => <Ionicons name={name} size={size ?? 24} color={color} />;
 
 export default function TabsLayout() {
+  const { t } = useLang();
   useEffect(() => { initNotifications(); registerForPush().catch(() => {}); }, []);
   return (
     <Tabs
@@ -18,9 +20,9 @@ export default function TabsLayout() {
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}
     >
-      <Tabs.Screen name="storefront" options={{ title: 'Vitrin', tabBarIcon: tabIcon('storefront-outline') }} />
-      <Tabs.Screen name="my-apps" options={{ title: "App'lerim", tabBarIcon: tabIcon('apps-outline') }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profil', tabBarIcon: tabIcon('person-outline') }} />
+      <Tabs.Screen name="storefront" options={{ title: t('tab_storefront'), tabBarIcon: tabIcon('storefront-outline') }} />
+      <Tabs.Screen name="my-apps" options={{ title: t('tab_myapps'), tabBarIcon: tabIcon('apps-outline') }} />
+      <Tabs.Screen name="profile" options={{ title: t('tab_profile'), tabBarIcon: tabIcon('person-outline') }} />
     </Tabs>
   );
 }
