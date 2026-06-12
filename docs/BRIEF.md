@@ -7,7 +7,15 @@
 
 ## 0. GÜNCEL DURUM (en son — buradan oku)
 
-### EN SON tur — NATIVE: adım sayar (pedometer) + push bildirimler (commit ea723af, build 11 → TestFlight)
+### ⚠️ AÇIK SORUN — push capability provisioning (build 11/12 FAILED)
+expo-notifications "Push Notifications" capability + `aps-environment` entitlement ekledi; mevcut iOS provisioning profile (build 9'dan) bunu içermiyor → EAS build fastlane'de patlıyor:
+`Provisioning profile ... doesn't include the Push Notifications capability / aps-environment`.
+Non-interactive build Apple'a kimlik doğrulamadan ("Skipping ... we aren't authenticated") eski profili kullanıyor; ASC API key env (EXPO_ASC_API_KEY_*) credential yenilemeyi tetiklemedi.
+**FIX (1 kez, interactive):** `cd ~/yapp && eas build -p ios --profile production` (interactive) → EAS "set up Push Notifications? Yes" sorar → APNs key + push'lu yeni profil üretir → build geçer. Sonraki non-interactive build'ler çalışır.
+**Alternatif:** push'u (expo-notifications) çıkar → pedometer + diğer her şey eski profille build olur, push'u IAP fazı build'inde (RevenueCat ile birlikte, o da credential adımı ister) geri ekle.
+Kod güvende: commit **ea723af**. Son BAŞARILI TestFlight = **build 10** (önceki tur, push'suz).
+
+### EN SON tur — NATIVE: adım sayar (pedometer) + push bildirimler (commit ea723af, build 11 → BUILD FAILED, yukarı bak)
 - **Adım Sayar modülü (YENİ, gerçek pedometer):** `expo-sensors` Pedometer ile telefonun saydığı GERÇEK günlük adım. Customer (`src/modules/customer/Steps.js`): adım + hedef bar + km/kcal. Manage: günlük hedef. **Tracker'dan adım çıkarıldı** (artık sadece su/kalori). registry/MODULE_INFO(steps)/icons(walk) eklendi.
 - **Push bildirim sistemi (expo-notifications):** `src/notifications/setup.js` — izin + Expo push token kaydı (`/api/push/register` → push_tokens), su + randevu yerel hatırlatıcı. `(tabs)/_layout`'ta init+register. Booking randevu alınca yerel hatırlatıcı.
 - **Backend push** (`src/lib/push.js` Expo send + businessAdmins; DEPLOY EDİLDİ) — tetikleyiciler: katılım isteği→adminler, mesaj→karşı taraf, yeni randevu→adminler, program/ölçüm atandı→müşteri, üyelik onay→müşteri, randevu durumu→müşteri.
