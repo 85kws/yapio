@@ -31,7 +31,7 @@ export default function Ordering({ businessId, theme }) {
   const order = async () => {
     if (!lines.length) return;
     await createEntry(businessId, 'ordering', { lines, total }, 'new');
-    setCart({}); Alert.alert('Sipariş alındı', `Toplam ${total} ₺`); load();
+    setCart({}); Alert.alert('Sipariş alındı', `Toplam ${total} ₺. Ödemeyi teslimde / gel-al sırasında yaparsın.`); load();
   };
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
@@ -72,6 +72,7 @@ export default function Ordering({ businessId, theme }) {
           )}
         </View>
       ))}
+      {items.length > 0 ? <Text style={s.payNote}>Ödeme uygulamada alınmaz — siparişini ver, teslimde/gel-al sırasında öde.</Text> : null}
       <View style={{ height: 90 }} />
       {lines.length > 0 && (
         <TouchableOpacity style={[s.orderBtn, { backgroundColor: theme }]} onPress={order}>
@@ -100,4 +101,5 @@ const s = StyleSheet.create({
   pillText: { fontWeight: '700', fontSize: 12 },
   orderBtn: { position: 'absolute', bottom: 20, left: 18, right: 18, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
   orderBtnText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+  payNote: { fontSize: 12, color: COLORS.muted, textAlign: 'center', marginTop: 10, lineHeight: 17 },
 });
