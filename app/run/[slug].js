@@ -14,6 +14,7 @@ import { MODULE_INFO } from '../../src/modules';
 import { CUSTOMER } from '../../src/modules/registry';
 import BlockRenderer from '../../src/blocks/BlockRenderer';
 import AppBackground from '../../src/components/AppBackground';
+import CanvasView from '../../src/components/CanvasView';
 
 const SCREEN_W = Dimensions.get('window').width;
 
@@ -66,6 +67,7 @@ export default function RunApp() {
   const theme = biz.theme_json?.color || COLORS.primary;
   const modules = data.config?.modules_enabled || [];
   const landing = data.config?.landing_blocks || [];
+  const canvas = data.config?.landing_canvas;
 
   const onNavigate = (key) => { if (MODULE_INFO[key]) switchTab(key, 1); };
 
@@ -123,9 +125,13 @@ export default function RunApp() {
         <Animated.View style={{ flex: 1, transform: [{ translateX: anim }] }}>
           {tab === '__home' ? (
             <ScrollView contentContainerStyle={s.content}>
-              {landing.map((b, i) => (
-                <BlockRenderer key={i} block={b} theme={theme} onNavigate={onNavigate} />
-              ))}
+              {canvas?.elements?.length ? (
+                <CanvasView canvas={canvas} theme={theme} onNavigate={onNavigate} />
+              ) : (
+                landing.map((b, i) => (
+                  <BlockRenderer key={i} block={b} theme={theme} onNavigate={onNavigate} />
+                ))
+              )}
               <View style={{ height: 20 }} />
             </ScrollView>
           ) : ActiveView ? (

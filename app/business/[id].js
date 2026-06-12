@@ -275,7 +275,13 @@ export default function ManageBusiness() {
 
         <TouchableOpacity style={s.linkRow} onPress={() => router.push(`/manage/${id}/home`)}>
           <Ionicons name="create-outline" size={20} color={theme} />
-          <Text style={s.linkText}>Ana Sayfayı Düzenle</Text>
+          <Text style={s.linkText}>Ana Sayfayı Düzenle (basit)</Text>
+          <Ionicons name="chevron-forward" size={22} color={COLORS.muted} />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={s.linkRow} onPress={() => router.push(`/manage/${id}/canvas`)}>
+          <Ionicons name="color-wand-outline" size={20} color={theme} />
+          <Text style={s.linkText}>Tasarla (Canva) — sürükle-bırak</Text>
           <Ionicons name="chevron-forward" size={22} color={COLORS.muted} />
         </TouchableOpacity>
 
