@@ -1,18 +1,18 @@
 name: iOS TestFlight
 
-# Elle tetiklenir (gh workflow run veya GitHub UI). Public repo → macOS runner bedava.
+# Public repo → macOS runner bedava. EAS'in çalışan imzasıyla (build 17'deki cert+profil)
+# `eas build --local` runner'da derler (EAS BULUT kotası yemez), sonra altool ile TestFlight'a atar.
 on:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: macos-26   # Xcode 26 / Swift 6.2 (RN 0.85 swift-tools 6.2 ister)
-    timeout-minutes: 75
+    timeout-minutes: 90
     env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-      TEAM_ID: AVABZF5FZ4
-      SCHEME: Yapio
     steps:
       - uses: actions/checkout@v4
 
@@ -22,27 +22,26 @@ jobs:
 
       - name: En yeni Xcode'u seç (Swift 6.2)
         run: |
-          ls /Applications | grep -i xcode || true
           sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
           xcodebuild -version
-          swift --version
 
-      - name: Install JS deps (lock'tan)
-        run: npm ci
+      - name: eas-cli kur
+        run: npm install -g eas-cli
 
-      - name: Expo prebuild (ios/ üret)
-        run: npx expo prebuild --platform ios --no-install
-        env:
-          CI: "1"
-
-      - name: Pod install
-        run: cd ios && pod install
-
-      - name: Build numarasını ayarla (17 + run)
+      - name: EAS local build (EAS imzasıyla; bulut kotası yemez)
         run: |
-          BN=$((17 + GITHUB_RUN_NUMBER))
-          echo "Build number: $BN"
-          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BN" ios/Yapio/Info.plist
+          eas build --local \
+            --platform ios \
+            --profile production \
+            --non-interactive \
+            --output "$RUNNER_TEMP/yapio.ipa"
+
+      - name: IPA'yı artifact olarak sakla
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipa
+          path: ${{ runner.temp }}/yapio.ipa
+          if-no-files-found: error
 
       - name: ASC API key dosyasını yerleştir
         run: |
@@ -50,55 +49,7 @@ jobs:
           echo "${{ secrets.ASC_KEY_BASE64 }}" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
           chmod 600 ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
 
-      - name: Archive (otomatik imza, ASC key)
+      - name: TestFlight'a yükle (altool, ASC key)
         run: |
-          cd ios
-          xcodebuild \
-            -workspace ${SCHEME}.xcworkspace \
-            -scheme ${SCHEME} \
-            -configuration Release \
-            -destination 'generic/platform=iOS' \
-            -archivePath "$RUNNER_TEMP/${SCHEME}.xcarchive" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
-            DEVELOPMENT_TEAM="$TEAM_ID" \
-            CODE_SIGN_STYLE=Automatic \
-            clean archive
-
-      - name: Export IPA (app-store)
-        run: |
-          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0"><dict>
-            <key>method</key><string>app-store</string>
-            <key>teamID</key><string>${TEAM_ID}</string>
-            <key>signingStyle</key><string>automatic</string>
-            <key>uploadSymbols</key><true/>
-            <key>destination</key><string>export</string>
-          </dict></plist>
-          PLIST
-          xcodebuild -exportArchive \
-            -archivePath "$RUNNER_TEMP/${SCHEME}.xcarchive" \
-            -exportPath "$RUNNER_TEMP/export" \
-            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
-
-      - name: Artifact olarak IPA'yı sakla
-        uses: actions/upload-artifact@v4
-        with:
-          name: ipa
-          path: ${{ runner.temp }}/export/*.ipa
-          if-no-files-found: error
-
-      - name: TestFlight'a yükle
-        run: |
-          IPA=$(ls "$RUNNER_TEMP"/export/*.ipa | head -1)
-          echo "Uploading $IPA"
-          xcrun altool --upload-app -f "$IPA" -t ios \
+          xcrun altool --upload-app -f "$RUNNER_TEMP/yapio.ipa" -t ios \
             --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
