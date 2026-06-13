@@ -1,0 +1,57 @@
+# Codemagic CI/CD — Yapio iOS (Expo) → TestFlight
+# EAS yerine alternatif iOS build. Bulut macOS'te derler, App Store Connect'e atar.
+#
+# KURULUM (bir kez, Codemagic web arayüzünde):
+#  1. codemagic.io → "Add application" → bu Git reposunu bağla (GitHub/GitLab/Bitbucket'a push'lu olmalı).
+#  2. Teams → Integrations → App Store Connect → "Add key":
+#       - Name (referans): Yapio ASC      <-- aşağıdaki integrations adıyla AYNI olmalı
+#       - Issuer ID:  662f4083-11b0-40dd-8e49-1fbecf6e3c90
+#       - Key ID:     QJT4TH5633
+#       - .p8 dosyası: ~/caloriday-ios-signing/AuthKey_QJT4TH5633.p8 (yükle)
+#  3. Bu workflow'u seç → "Start new build".
+# İmza (sertifika + provisioning profile) App Store Connect API key ile OTOMATİK yönetilir.
+
+workflows:
+  ios-testflight:
+    name: Yapio iOS → TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: Yapio ASC        # Codemagic UI'daki ASC key adıyla birebir aynı
+    environment:
+      ios_signing:
+        distribution_type: app_store      # TestFlight/App Store dağıtım profili
+        bundle_identifier: com.yapp.builder
+      vars:
+        APP_STORE_APP_ID: "6778594032"    # ASC app id (build no'yu buradan ileri alır)
+        XCODE_WORKSPACE: "ios/Yapio.xcworkspace"
+        XCODE_SCHEME: "Yapio"
+      node: 22
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: npm ci (lock'tan temiz kurulum)
+        script: npm ci
+      - name: Expo prebuild (ios/ üret)
+        script: npx expo prebuild --platform ios --clean --no-install
+      - name: Pod install
+        script: |
+          cd ios && pod install
+      - name: İmza profillerini uygula
+        script: xcode-project use-profiles
+      - name: Build numarasını TestFlight'tan +1 al
+        script: |
+          BUILD_NUMBER=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APP_ID")
+          cd ios && agvtool new-version -all $(($BUILD_NUMBER + 1))
+      - name: IPA derle
+        script: |
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration                 # yukarıdaki ASC key ile
+        submit_to_testflight: true         # otomatik TestFlight'a yükle
