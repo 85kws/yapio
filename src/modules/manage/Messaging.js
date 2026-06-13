@@ -36,8 +36,8 @@ export default function ManageMessaging({ businessId, theme }) {
   const list = Object.values(threads).sort((a, b) => (a.msgs[0]?.created_at < b.msgs[0]?.created_at ? 1 : -1));
 
   if (open != null) {
-    const t = threads[open] || { name: 'Müşteri', msgs: [] };
-    const ordered = t.msgs.slice().reverse(); // eskiden yeniye
+    const thread = threads[open] || { name: 'Müşteri', msgs: [] };
+    const ordered = thread.msgs.slice().reverse(); // eskiden yeniye
     const reply = async () => {
       if (!text.trim()) return; const x = text.trim(); setText('');
       await createEntryFor(businessId, 'messaging', Number(open), { text: x, from: 'seller' }, 'new');
@@ -47,8 +47,8 @@ export default function ManageMessaging({ businessId, theme }) {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
         <TouchableOpacity style={s.threadHead} onPress={() => setOpen(null)}>
           <Ionicons name="chevron-back" size={22} color={theme} />
-          <View style={[s.avatarSm, { backgroundColor: theme }]}><Text style={s.avatarSmText}>{(t.name || '?')[0].toUpperCase()}</Text></View>
-          <Text style={s.threadName}>{t.name || 'Müşteri'}</Text>
+          <View style={[s.avatarSm, { backgroundColor: theme }]}><Text style={s.avatarSmText}>{(thread.name || '?')[0].toUpperCase()}</Text></View>
+          <Text style={s.threadName}>{thread.name || 'Müşteri'}</Text>
         </TouchableOpacity>
         <ScrollView ref={ref} contentContainerStyle={s.wrap} onContentSizeChange={() => ref.current?.scrollToEnd({ animated: true })}>
           {ordered.map((m) => {
@@ -71,7 +71,7 @@ export default function ManageMessaging({ businessId, theme }) {
     );
   }
 
-  const shown = list.filter((t) => !q.trim() || (t.name || '').toLowerCase().includes(q.trim().toLowerCase()));
+  const shown = list.filter((th) => !q.trim() || (th.name || '').toLowerCase().includes(q.trim().toLowerCase()));
   return (
     <View style={{ flex: 1 }}>
       <View style={s.searchWrap}>
@@ -80,13 +80,13 @@ export default function ManageMessaging({ businessId, theme }) {
       </View>
       <ScrollView contentContainerStyle={{ padding: 12 }}>
         {list.length === 0 && <Text style={s.empty}>{t('no_messages_yet')}</Text>}
-        {shown.map((t) => {
-          const last = t.msgs[0];
+        {shown.map((th) => {
+          const last = th.msgs[0];
           return (
-            <TouchableOpacity key={t.id} style={s.threadRow} onPress={() => setOpen(String(t.id))}>
-              <View style={[s.avatar, { backgroundColor: theme }]}><Text style={s.avatarText}>{(t.name || '?')[0].toUpperCase()}</Text></View>
+            <TouchableOpacity key={th.id} style={s.threadRow} onPress={() => setOpen(String(th.id))}>
+              <View style={[s.avatar, { backgroundColor: theme }]}><Text style={s.avatarText}>{(th.name || '?')[0].toUpperCase()}</Text></View>
               <View style={{ flex: 1 }}>
-                <Text style={s.tName}>{t.name || 'Müşteri'}</Text>
+                <Text style={s.tName}>{th.name || 'Müşteri'}</Text>
                 <Text style={s.tLast} numberOfLines={1}>{last?.data.from === 'seller' ? t('you_prefix') : ''}{last?.data.text}</Text>
               </View>
               <Text style={s.tTime}>{fmtTime(last?.created_at)}</Text>

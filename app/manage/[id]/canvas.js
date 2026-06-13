@@ -37,6 +37,9 @@ export default function CanvasEditor() {
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
   const drag = useRef(null);
+  const elsRef = useRef([]);      // her zaman güncel els (grant'ta pozisyon okumak için)
+  const pans = useRef({});        // öğe başına KALICI PanResponder (her render'da yeniden üretme → titreme)
+  elsRef.current = els || [];
 
   const load = useCallback(async () => {
     try {
@@ -55,17 +58,27 @@ export default function CanvasEditor() {
   const remove = (eid) => { setEls((a) => a.filter((e) => e.id !== eid)); setSel(null); };
   const add = (type) => { const e = newEl(type, theme); setEls((a) => [...a, e]); setSel(e.id); };
 
-  const makePan = (el) => PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 3 || Math.abs(g.dy) > 3,
-    onPanResponderGrant: () => { setSel(el.id); setDragging(true); drag.current = { id: el.id, x: el.x, y: el.y }; },
-    onPanResponderMove: (_, g) => {
-      const ds = drag.current; if (!ds) return;
-      setEls((a) => a.map((e) => e.id === ds.id ? { ...e, x: clamp(ds.x + g.dx, 0, CW - e.w), y: Math.max(0, ds.y + g.dy) } : e));
-    },
-    onPanResponderRelease: () => { drag.current = null; setDragging(false); },
-    onPanResponderTerminate: () => { drag.current = null; setDragging(false); },
-  });
+  // Öğe başına KALICI PanResponder. Grant'ta güncel konumu elsRef'ten okur (kapanış bayatlamaz).
+  // Her render'da yeniden üretilmediği için sürükleme jesti kesilmez (titreme yok).
+  const getPan = (eid) => {
+    if (pans.current[eid]) return pans.current[eid];
+    pans.current[eid] = PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 3 || Math.abs(g.dy) > 3,
+      onPanResponderGrant: () => {
+        const cur = elsRef.current.find((e) => e.id === eid) || { x: 0, y: 0 };
+        setSel(eid); setDragging(true);
+        drag.current = { id: eid, x: cur.x, y: cur.y };
+      },
+      onPanResponderMove: (_, g) => {
+        const ds = drag.current; if (!ds) return;
+        setEls((a) => a.map((e) => e.id === ds.id ? { ...e, x: clamp(ds.x + g.dx, 0, CW - e.w), y: Math.max(0, ds.y + g.dy) } : e));
+      },
+      onPanResponderRelease: () => { drag.current = null; setDragging(false); },
+      onPanResponderTerminate: () => { drag.current = null; setDragging(false); },
+    });
+    return pans.current[eid];
+  };
 
   const pickImg = async (eid) => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -103,7 +116,7 @@ export default function CanvasEditor() {
           {els.map((el) => {
             const on = el.id === sel;
             return (
-              <View key={el.id} {...makePan(el).panHandlers} style={[{ position: 'absolute', left: el.x, top: el.y, width: el.w, height: el.h }, on && s.selBox]}>
+              <View key={el.id} {...getPan(el.id).panHandlers} style={[{ position: 'absolute', left: el.x, top: el.y, width: el.w, height: el.h }, on && s.selBox]}>
                 {el.type === 'text' ? (
                   <Text style={{ fontSize: el.size, color: el.color, fontWeight: el.bold ? '800' : '400', textAlign: el.align }}>{el.text}</Text>
                 ) : el.type === 'image' ? (
