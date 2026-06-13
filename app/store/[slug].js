@@ -1,6 +1,6 @@
 // Mağaza detay sayfası (Play Store tarzı): isim, ikon, ekran görüntüleri, açıklama, indir/aç.
 import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet, ActivityIndicator, Alert, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet, ActivityIndicator, Alert, Dimensions, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -49,12 +49,21 @@ export default function StorePage() {
     } catch (e) { Alert.alert('Hata', e?.message); } finally { setBusy(false); }
   };
 
+  const share = () => {
+    Share.share({
+      message: `${biz.name} — Yapio'da! Uygulamayı aç: yapp://store/${biz.share_slug}`,
+    }).catch(() => {});
+  };
+
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={22} color={COLORS.primary} />
           <Text style={s.back}>Geri</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.shareBtn} onPress={share} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Ionicons name="share-outline" size={22} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
 
@@ -148,8 +157,9 @@ export default function StorePage() {
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg },
-  header: { paddingHorizontal: SIZES.pad, paddingVertical: 8 },
-  backBtn: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SIZES.pad, paddingVertical: 8 },
+  backBtn: { flexDirection: 'row', alignItems: 'center' },
+  shareBtn: { padding: 4 },
   back: { color: COLORS.primary, fontSize: 17, fontWeight: '600' },
   hero: { flexDirection: 'row', gap: 16, paddingHorizontal: SIZES.pad, paddingBottom: 16, alignItems: 'center' },
   name: { fontSize: 22, fontWeight: '800', color: COLORS.text },

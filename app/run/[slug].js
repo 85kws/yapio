@@ -1,13 +1,14 @@
 // Mini uygulama çalışma zamanı: backend config'inden render eder (landing + modüller).
 // Gerçek app hissi: üst başlık YOK, alt yatay kaydırılabilir özellik menüsü (tab bar).
 // Menüler arası: dokun-geç + ekranın her yerinden YATAY KAYDIR ile geç, geçiş animasyonlu (slide).
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert, Animated, PanResponder, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import * as SecureStore from 'expo-secure-store';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { getAppBySlug, joinBusiness } from '../../src/api/client';
+import { getAppBySlug, joinBusiness, getEntries, getItems } from '../../src/api/client';
 import { COLORS } from '../../src/theme';
 import { useLang } from '../../src/i18n';
 import { moduleIcon, AppIcon } from '../../src/icons';
@@ -28,6 +29,36 @@ export default function RunApp() {
   const [tab, setTab] = useState('__home');
   const [code, setCode] = useState('');
   const [joining, setJoining] = useState(false);
+  const [unread, setUnread] = useState({});   // { messaging:bool, push:bool }
+
+  // Okunmadı rozeti: son görülen zamandan (SecureStore) yeni içerik var mı?
+  const seenKey = (mod) => `yapio_seen_${slug}_${mod}`;
+  const markSeen = useCallback(async (mod) => {
+    try { await SecureStore.setItemAsync(seenKey(mod), String(Date.now())); } catch {}
+    setUnread((u) => (u[mod] ? { ...u, [mod]: false } : u));
+  }, [slug]);
+  const computeUnread = useCallback(async (d) => {
+    const mods = d?.config?.modules_enabled || [];
+    const bid = d?.business?.id;
+    if (!bid) return;
+    const res = {};
+    await Promise.all(mods.map(async (m) => {
+      if (m !== 'messaging' && m !== 'push') return;
+      try {
+        const seen = Number(await SecureStore.getItemAsync(seenKey(m))) || 0;
+        let latest = 0;
+        if (m === 'messaging') {
+          const e = (await getEntries(bid, 'messaging')).entries || [];
+          latest = e.filter((x) => x.data?.from === 'seller').reduce((mx, x) => Math.max(mx, +new Date(x.created_at)), 0);
+        } else {
+          const it = (await getItems(bid, 'push')) || [];
+          latest = it.reduce((mx, x) => Math.max(mx, +new Date(x.created_at)), 0);
+        }
+        res[m] = latest > seen;
+      } catch {}
+    }));
+    setUnread(res);
+  }, [slug]);
 
   // animasyon + swipe altyapısı (hook'lar erken return'den önce)
   const anim = useRef(new Animated.Value(0)).current;
@@ -58,12 +89,16 @@ export default function RunApp() {
     try {
       const d = await getAppBySlug(slug);
       setData(d);
+      computeUnread(d);
     } catch (e) {
       Alert.alert(t('not_found'), e?.response?.data?.error || t('app_load_fail'));
       router.back();
     }
-  }, [slug]);
+  }, [slug, computeUnread]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  // Mesaj/Bildirim sekmesi açılınca okundu say (rozet temizlenir).
+  useEffect(() => { if (tab === 'messaging' || tab === 'push') markSeen(tab); }, [tab, markSeen]);
 
   if (!data) return <SafeAreaView style={{ flex: 1 }}><ActivityIndicator style={{ marginTop: 60 }} color={COLORS.primary} /></SafeAreaView>;
 
@@ -166,7 +201,10 @@ export default function RunApp() {
               return (
                 <TouchableOpacity key={t.key} style={s.tabItem} onPress={() => switchTab(t.key, i >= curIdx ? 1 : -1)} activeOpacity={0.7}>
                   <View style={[s.tabIndicator, active && { backgroundColor: theme }]} />
-                  <Ionicons name={t.icon} size={22} color={active ? theme : COLORS.muted} />
+                  <View>
+                    <Ionicons name={t.icon} size={22} color={active ? theme : COLORS.muted} />
+                    {unread[t.key] ? <View style={s.badge} /> : null}
+                  </View>
                   <Text style={[s.tabLabel, { color: active ? theme : COLORS.muted }]} numberOfLines={1}>{t.label}</Text>
                 </TouchableOpacity>
               );
@@ -188,6 +226,7 @@ const s = StyleSheet.create({
   tabItem: { alignItems: 'center', paddingHorizontal: 14, paddingBottom: 6, minWidth: 64 },
   tabIndicator: { width: 22, height: 3, borderRadius: 2, marginBottom: 6, backgroundColor: 'transparent' },
   tabLabel: { fontSize: 11, fontWeight: '700', marginTop: 3 },
+  badge: { position: 'absolute', top: -3, right: -5, width: 10, height: 10, borderRadius: 5, backgroundColor: '#E5484D', borderWidth: 1.5, borderColor: '#fff' },
   // lock gate
   lockWrap: { flex: 1 },
   lockTitle: { fontSize: 24, fontWeight: '800', color: COLORS.text, marginTop: 14 },

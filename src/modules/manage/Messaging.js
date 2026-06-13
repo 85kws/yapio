@@ -1,8 +1,8 @@
 // Mini admin mesajlaşma: WhatsApp tarzı — kişi listesi (en yeni üstte) → seç → thread → yanıtla.
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getEntries, createEntryFor } from '../../api/client';
+import { getEntries, createEntryFor, getMembers } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 
@@ -21,10 +21,20 @@ export default function ManageMessaging({ businessId, theme }) {
   const [open, setOpen] = useState(null);
   const [text, setText] = useState('');
   const [q, setQ] = useState('');
+  const [members, setMembers] = useState([]);
+  const [peer, setPeer] = useState(null);     // yeni başlatılan sohbetin karşı tarafı
+  const [picker, setPicker] = useState(false);
   const ref = useRef(null);
 
   const load = useCallback(async () => {
-    try { setAll((await getEntries(businessId, 'messaging')).entries || []); } finally { setLoading(false); }
+    try {
+      const [e, mem] = await Promise.all([
+        getEntries(businessId, 'messaging'),
+        getMembers(businessId).catch(() => []),
+      ]);
+      setAll(e.entries || []);
+      setMembers((mem || []).filter((m) => m.status === 'active'));
+    } finally { setLoading(false); }
   }, [businessId]);
   useEffect(() => { load(); }, [load]);
 
@@ -36,7 +46,7 @@ export default function ManageMessaging({ businessId, theme }) {
   const list = Object.values(threads).sort((a, b) => (a.msgs[0]?.created_at < b.msgs[0]?.created_at ? 1 : -1));
 
   if (open != null) {
-    const thread = threads[open] || { name: 'Müşteri', msgs: [] };
+    const thread = threads[open] || { name: peer?.name || 'Müşteri', msgs: [] };
     const ordered = thread.msgs.slice().reverse(); // eskiden yeniye
     const reply = async () => {
       if (!text.trim()) return; const x = text.trim(); setText('');
@@ -74,9 +84,14 @@ export default function ManageMessaging({ businessId, theme }) {
   const shown = list.filter((th) => !q.trim() || (th.name || '').toLowerCase().includes(q.trim().toLowerCase()));
   return (
     <View style={{ flex: 1 }}>
-      <View style={s.searchWrap}>
-        <Ionicons name="search" size={18} color={COLORS.muted} />
-        <TextInput style={s.search} value={q} onChangeText={setQ} placeholder={t('search_person')} placeholderTextColor="#B0B0C0" />
+      <View style={s.topRow}>
+        <View style={s.searchWrap}>
+          <Ionicons name="search" size={18} color={COLORS.muted} />
+          <TextInput style={s.search} value={q} onChangeText={setQ} placeholder={t('search_person')} placeholderTextColor="#B0B0C0" />
+        </View>
+        <TouchableOpacity style={[s.composeBtn, { backgroundColor: theme }]} onPress={() => setPicker(true)}>
+          <Ionicons name="create-outline" size={20} color="#fff" />
+        </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={{ padding: 12 }}>
         {list.length === 0 && <Text style={s.empty}>{t('no_messages_yet')}</Text>}
@@ -94,13 +109,39 @@ export default function ManageMessaging({ businessId, theme }) {
           );
         })}
       </ScrollView>
+
+      {/* Yeni sohbet — üye seçici */}
+      <Modal visible={picker} animationType="slide" transparent onRequestClose={() => setPicker(false)}>
+        <TouchableOpacity style={s.modalBg} activeOpacity={1} onPress={() => setPicker(false)}>
+          <View style={s.sheet}>
+            <View style={s.sheetHandle} />
+            <Text style={s.sheetTitle}>{t('select_customer')}</Text>
+            <ScrollView style={{ maxHeight: 360 }}>
+              {members.length === 0 && <Text style={s.empty}>{t('no_active_customers')}</Text>}
+              {members.map((m) => (
+                <TouchableOpacity key={m.user_id} style={s.pickRow} onPress={() => { setPeer({ id: m.user_id, name: m.user_name }); setOpen(String(m.user_id)); setPicker(false); }}>
+                  <View style={[s.avatar, { backgroundColor: theme }]}><Text style={s.avatarText}>{(m.user_name || '?')[0].toUpperCase()}</Text></View>
+                  <Text style={s.tName}>{m.user_name || t('user')}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
 
 const s = StyleSheet.create({
   empty: { color: COLORS.muted, textAlign: 'center', marginTop: 40 },
-  searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, margin: 12, marginBottom: 0, backgroundColor: '#F1F1F7', borderRadius: 12, paddingHorizontal: 12 },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: 8, margin: 12, marginBottom: 0 },
+  composeBtn: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  searchWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F1F1F7', borderRadius: 12, paddingHorizontal: 12 },
+  modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 16, paddingBottom: 30 },
+  sheetHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: COLORS.border, alignSelf: 'center', marginBottom: 12 },
+  sheetTitle: { fontSize: 17, fontWeight: '800', color: COLORS.text, marginBottom: 12 },
+  pickRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 },
   search: { flex: 1, paddingVertical: 10, fontSize: 15, color: COLORS.text },
   threadRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 12, padding: 12, marginBottom: 8 },
   avatar: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },

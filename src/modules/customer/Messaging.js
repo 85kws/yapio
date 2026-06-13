@@ -8,6 +8,14 @@ import { COLORS } from '../../theme';
 import { SkeletonList, useRefresh } from '../../components/ui';
 import { light } from '../../haptics';
 
+const fmtTime = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso), now = new Date();
+  return d.toDateString() === now.toDateString()
+    ? d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+    : d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
+};
+
 export default function Messaging({ businessId, theme }) {
   const { t } = useLang();
   const [msgs, setMsgs] = useState([]);
@@ -40,8 +48,11 @@ export default function Messaging({ businessId, theme }) {
         {msgs.map((m) => {
           const mine = m.data.from === 'customer';
           return (
-            <View key={m.id} style={[s.bubble, mine ? [s.mine, { backgroundColor: theme }] : s.theirs]}>
-              <Text style={[s.msgText, mine && { color: '#fff' }]}>{m.data.text}</Text>
+            <View key={m.id} style={[s.bubbleWrap, mine ? { alignItems: 'flex-end' } : { alignItems: 'flex-start' }]}>
+              <View style={[s.bubble, mine ? [s.mine, { backgroundColor: theme }] : s.theirs]}>
+                <Text style={[s.msgText, mine && { color: '#fff' }]}>{m.data.text}</Text>
+              </View>
+              <Text style={s.time}>{fmtTime(m.created_at)}</Text>
             </View>
           );
         })}
@@ -57,10 +68,12 @@ export default function Messaging({ businessId, theme }) {
 const s = StyleSheet.create({
   wrap: { padding: 16, paddingBottom: 8 },
   empty: { textAlign: 'center', color: COLORS.muted, marginTop: 40 },
-  bubble: { maxWidth: '80%', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 8 },
-  mine: { alignSelf: 'flex-end', borderBottomRightRadius: 4 },
-  theirs: { alignSelf: 'flex-start', backgroundColor: '#fff', borderBottomLeftRadius: 4 },
+  bubbleWrap: { marginBottom: 8 },
+  bubble: { maxWidth: '82%', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 10 },
+  mine: { borderBottomRightRadius: 4 },
+  theirs: { backgroundColor: '#fff', borderBottomLeftRadius: 4 },
   msgText: { fontSize: 15, color: COLORS.text, lineHeight: 21 },
+  time: { fontSize: 10, color: COLORS.muted, marginTop: 2, marginHorizontal: 4 },
   bar: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderTopWidth: 1, borderTopColor: COLORS.border, backgroundColor: '#fff' },
   input: { flex: 1, backgroundColor: '#F1F1F7', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 11, fontSize: 15, color: COLORS.text },
   send: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
