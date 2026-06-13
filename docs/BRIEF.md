@@ -7,6 +7,86 @@
 
 ## 0. GÜNCEL DURUM (en son — buradan oku)
 
+### 🗓️ 2026-06-13 — BÜYÜK TUR: bug avı + booking + QR + 11 sektör + cila + crash fix + YENİ BUILD ALTYAPISI + 4 özellik
+
+> Bu turda: ~15 bug düzeltildi (backend prod'a deploy edildi), booking tamamlandı, gerçek QR+kamera
+> check-in eklendi, sektör sayısı 21→32 oldu, tüm müşteri modüllerine cila (pull-to-refresh/haptik/
+> skeleton) geldi. TestFlight build 17 **açılışta crash** verdi → düzeltildi. **EAS bedava iOS kotası
+> dolunca** build altyapısı **GitHub Actions**'a taşındı (artık tek komutla build). Son **4 özellik** eklendi.
+> **Son başarılı TestFlight = build 20.**
+
+#### 🏗️ BUILD ARTIK GITHUB ACTIONS İLE (EAS yerine — EN ÖNEMLİ DEĞİŞİKLİK)
+- **EAS bedava iOS kotası doldu** (1 Tem 2026'da sıfırlanır). Mac yok → bulut-Mac CI şart.
+- **Repo:** GitHub **`85kws/yapio`** (PUBLIC → macOS Actions bedava). `master` + `main` senkron tutuluyor.
+- **Yeni build almak (TEK KOMUT):**
+  ```bash
+  gh workflow run ios-testflight.yml -R 85kws/yapio --ref master
+  ```
+  (veya GitHub → Actions → "iOS TestFlight" → Run workflow). Build no otomatik artar, IPA TestFlight'a kendi düşer.
+- **Workflow** (`.github/workflows/ios-testflight.yml`): `macos-26` runner (Xcode 26 / **Swift 6.2** — RN 0.85 şart) →
+  npm ci → **`eas build --local`** (EAS'in build 17'de çalışan dağıtım cert+profilini kullanır; **EAS BULUT kotası YEMEZ**) →
+  **altool** ile TestFlight upload. Build no = `17 + GITHUB_RUN_NUMBER`.
+- **GitHub secrets:** `EXPO_TOKEN` (yerel eas oturumundan GraphQL ile üretilen robot access token, id `227e2788-...`),
+  `ASC_KEY_ID`=QJT4TH5633, `ASC_ISSUER_ID`=662f4083-..., `ASC_KEY_BASE64` (AuthKey p8'in base64'ü).
+- **Neden bu mimari (5 denemede öğrenildi):** (1) saf xcodebuild `DEVELOPMENT_TEAM` ister → eklendi; (2) RN 0.85
+  Swift 6.2 ister, macos-15=6.1 → `macos-26`; (3) export'ta ASC key **dağıtım sertifikası üretemiyor**
+  ("Cloud signing permission error", App Manager rolü) → çözüm: `eas build --local` EAS'in hazır cert'ini kullanır;
+  (4) `eas build --local` config plugin için `npm ci` ister; (5) çalıştı.
+- **Alternatif:** Codemagic kurulumu da hazır (`codemagic.yaml` + `docs/CODEMAGIC.md`, 500 mac-dk/ay bedava) — UI'dan kurulur.
+- **EXPO_TOKEN yenileme** (revoke olursa): yerel oturum açıkken `node` ile Expo GraphQL `createAccessToken`
+  (actorID gerekir; `{ meActor { id } }` ile alınır), header `expo-session: <~/.expo/state.json auth.sessionSecret>`.
+
+#### 🔴→🟢 CRASH FIX (build 17 açılışta ölüyordu)
+- **Sebep (crash log):** `dyld: Symbol not found: ExpoModulesCore.Record.from(dictionary:appContext:)`, ExpoCamera'dan
+  referans, ExpoModulesCore'da yok. **expo-camera@56.0.8, expo@56.0.9'dan daha yeni Core API istiyor.** New Arch değil.
+- **Fix:** tüm expo paketleri SDK-uyumlu hizalandı: **expo 56.0.9→56.0.11**, expo-router 56.2.10, image-picker 56.0.17,
+  linking 56.0.14 (`expo install --fix`). Lock tazelendi. (commit `33ab9a4`)
+
+#### 🐛 BUG FIX'LER (backend prod'a DEPLOY EDİLDİ + frontend)
+Backend değişiklikleri Hetzner `/opt/yapp-backend`'e scp + `npm run init-db` + `pm2 restart yapp` ile **canlıda**.
+Rollback yedeği: `/opt/yapp-backend/.bak_20260613_134420/`. **Backend git'siz** (versiyon yok, scp ile deploy edilir).
+- **Canva editör ÖLÜYDÜ:** `app_config.landing_canvas` kolonu yoktu → save/read 3 route'ta (`business.routes`,
+  `storefront.routes`, `schema.sql` migration). Artık çalışıyor.
+- **Booking yanlış güne düşüyordu (TR UTC+3):** `toISOString()` günü kaydırıyordu → `src/dates.js localDate()` yerel
+  tarih. Aynı UTC hatası Tracker/Records/Plans/Payments'ta da düzeltildi.
+- **Çift rezervasyon:** POST booking entry'de çakışma kontrolü yoktu → backend `WHERE NOT EXISTS` (yarış-güvenli) + 409.
+- **Müşteri kendi kaydını değiştirebiliyordu** (loyalty damga/abonelik check-in hilesi): PUT entries'te non-staff `data`
+  yazamaz, sadece iptal.
+- **Özel app üyelik atlanıyordu:** `accessGate` → items/entries/slots private app'te aktif üyelik şartı.
+- **Diğer:** sunucu slot tz (UTC+3 sabit) · storefront tüm satırı sızdırıyordu → whitelist (join_code yalnız sahibe) ·
+  ölü `/auth/business-login` kaldırıldı · PUT items 404 · dup abonelik guard · birçok yerde i18n `t()` gölgeleme.
+
+#### ✅ Booking tamamlandı
+- **Haftalık kapalı gün:** manage'de gün chip'leri → `hours_json.closed` (JS getDay dizisi); backend slots o günü atlar.
+- (Ertelendi: personel-bazlı takvim — ürün kararı gerek.)
+
+#### 📷 Gerçek QR + kamera check-in
+- Deps: `react-native-qrcode-svg`, `react-native-svg`, `expo-camera`. app.json kamera izni + plugin.
+- `src/components/QRScanner.js` (expo-camera). Customer Subscriptions+Loyalty kartında **gerçek QR**
+  (`yapio:sub:<bid>:<entryId>` / `yapio:loy:...`). Manage'de **QR okut** → üyelik check-in / +1 damga.
+
+#### 🏢 Sektör 21 → 32
+- Eklenen: otel, avukat, muhasebe, emlak, optik, kurutemizleme, cicekci, evhizmet, spa, rentacar, pt.
+- Backend `src/lib/templates.js` (SECTORS+TEMPLATES) + frontend `src/icons.js` (Ionicon haritası). Prod'da reseed edildi.
+
+#### ✨ Cila ("gerçek app" hissi)
+- Yeni: `src/haptics.js` (expo-haptics), `src/components/ui.js` (`Loading`/`EmptyState`/`SkeletonList`/`useRefresh`).
+- 13 müşteri modülü (Booking/Catalog/Ordering/Subscriptions/Loyalty/Tracker/Campaigns/Reviews/Gallery/Records/Plans/
+  Push/Messaging): **pull-to-refresh + skeleton + tutarlı boş-durum + haptik**. Runtime sekme geçişinde haptik.
+
+#### 🆕 4 YENİ ÖZELLİK (build 20)
+- **Admin'den yeni sohbet:** manage Messaging'de ✏️ + üye seçici → hiç yazmamış üyeye ilk mesaj.
+- **Okunmadı rozeti:** run alt sekmelerde Mesaj/Bildirim'e yeni içerik gelince kırmızı nokta (SecureStore "son görülen";
+  sekme açılınca temizlenir).
+- **Uygulamayı paylaş:** store sayfasında Share butonu (`yapp://store/<slug>`).
+- **Müşteri sohbetinde zaman damgası** (manage thread ile aynı).
+
+#### Commit zinciri (master, GitHub 85kws/yapio)
+`2566aef`(fix+QR+sektör) → `02cb2f7`(cila) → `33ab9a4`(crash dep fix) → `d5dc6ce`(codemagic) →
+`57dd39b`(GH Actions) → team/swift/eas-local CI fix'leri → `(drag+messaging crash fix)` → `(4 özellik)`.
+
+---
+
 ### ✅ Push provisioning ÇÖZÜLDÜ
 build 11/12/13 push-capability eksik provisioning profile yüzünden düşmüştü. ÇÖZÜM: bir kez **interactive** `eas build -p ios --profile production` (Apple ID `baserosmanyigit@gmail.com` + app-specific password, "set up Push Notifications? Yes") → APNs key + push'lu profil üretildi. Artık **non-interactive `eas build` çalışıyor**. Son BAŞARILI TestFlight = **build 15**.
 
