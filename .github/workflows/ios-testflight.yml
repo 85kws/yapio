@@ -28,6 +28,9 @@ jobs:
       - name: eas-cli kur
         run: npm install -g eas-cli
 
+      - name: JS bağımlılıkları (config plugin çözümü için)
+        run: npm ci
+
       - name: EAS local build (EAS imzasıyla; bulut kotası yemez)
         run: |
           eas build --local \
