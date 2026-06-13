@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getEntries, createEntryFor, deleteEntry, getMembers } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
+import { localDate } from '../../dates';
 
 // Detaylı vücut analizi alanları (Tanita/FormLab tarzı) — etiketler i18n fld_<key>
 export const RECORD_FIELDS = ['weight', 'fat', 'fat_mass', 'muscle', 'water', 'bone', 'bmi', 'visceral', 'metabolic_age', 'bmr', 'protein', 'mineral', 'waist', 'hip', 'chest', 'arm'];
@@ -33,7 +34,7 @@ export default function ManageRecords({ businessId, theme }) {
     if (!Object.values(f).some((v) => String(v).trim())) return Alert.alert(t('empty'), t('enter_a_value'));
     setSaving(true);
     try {
-      await createEntryFor(businessId, 'records', sel, { date: new Date().toISOString().slice(0, 10), ...f });
+      await createEntryFor(businessId, 'records', sel, { date: localDate(), ...f });
       setF({}); await load();
     } catch (e) { Alert.alert(t('error'), t('not_saved')); } finally { setSaving(false); }
   };

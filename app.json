@@ -18,7 +18,8 @@
       "bundleIdentifier": "com.yapp.builder",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSMotionUsageDescription": "Adım sayar özelliği için hareket verisi kullanılır."
+        "NSMotionUsageDescription": "Adım sayar özelliği için hareket verisi kullanılır.",
+        "NSCameraUsageDescription": "Üyelik/sadakat kartı QR kodunu okutmak için kamera kullanılır."
       }
     },
     "android": {
@@ -29,7 +30,7 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "permissions": []
+      "permissions": ["android.permission.CAMERA"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -47,6 +48,12 @@
         "expo-notifications",
         {
           "color": "#5B4BE7"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Üyelik/sadakat kartı QR kodunu okutmak için kamera kullanılır."
         }
       ],
       "expo-localization"

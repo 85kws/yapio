@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getEntries, createEntry } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
+import { localDate } from '../../dates';
 
 export default function Tracker({ businessId, theme }) {
   const { t } = useLang();
@@ -19,13 +20,13 @@ export default function Tracker({ businessId, theme }) {
 
   const add = async () => {
     if (!f.water && !f.calorie) return;
-    await createEntry(businessId, 'tracker', { date: new Date().toISOString().slice(0, 10), water: Number(f.water) || 0, calorie: Number(f.calorie) || 0 });
+    await createEntry(businessId, 'tracker', { date: localDate(), water: Number(f.water) || 0, calorie: Number(f.calorie) || 0 });
     setF({ water: '', calorie: '' }); load();
   };
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDate();
   const todays = list.filter((e) => e.data.date === today);
   const sum = (k) => todays.reduce((a, e) => a + (e.data[k] || 0), 0);
 

@@ -11,7 +11,10 @@ import { COLORS } from '../../theme';
 const WD_TR = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 const WD_EN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAYS_N = 28; // 4 hafta ileri
-const fmtDate = (d) => d.toISOString().slice(0, 10);
+// YEREL tarih damgası — toISOString() UTC'ye kaydırıp Türkiye'de (UTC+3) günü bir
+// geri alıyordu (randevu yanlış güne düşüyordu). Yerel y/a/g ile üret.
+const pad2 = (n) => String(n).padStart(2, '0');
+const fmtDate = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 const mondayIdx = (d) => (d.getDay() + 6) % 7; // Pzt=0 ... Paz=6
 
 export default function Booking({ businessId, theme }) {
@@ -71,7 +74,10 @@ export default function Booking({ businessId, theme }) {
       scheduleApptReminder(date, time, service.data.name).catch(() => {});
       Alert.alert(t('booked'), `${service.data.name} · ${date} ${time}`);
       setService(null); await load();
-    } catch (e) { Alert.alert(t('error'), e?.response?.data?.error || t('booking_failed')); }
+    } catch (e) {
+      Alert.alert(t('error'), e?.response?.data?.error || t('booking_failed'));
+      loadAvail(); // saat az önce dolduysa müsaitliği tazele
+    }
     finally { setBooking(false); }
   };
 
@@ -169,9 +175,9 @@ export default function Booking({ businessId, theme }) {
             <Text style={s.empty}>{t('no_slot')}</Text>
           ) : (
             <View style={s.slots}>
-              {daySlots.map((t) => (
-                <TouchableOpacity key={t} style={[s.slot, { borderColor: theme }]} disabled={booking} onPress={() => book(t)}>
-                  <Text style={[s.slotText, { color: theme }]}>{t}</Text>
+              {daySlots.map((tm) => (
+                <TouchableOpacity key={tm} style={[s.slot, { borderColor: theme }]} disabled={booking} onPress={() => book(tm)}>
+                  <Text style={[s.slotText, { color: theme }]}>{tm}</Text>
                 </TouchableOpacity>
               ))}
             </View>

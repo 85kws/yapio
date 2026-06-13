@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import QRCode from 'react-native-qrcode-svg';
 import { getItems, getEntries, createEntry } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
@@ -11,6 +12,7 @@ export default function Loyalty({ businessId, theme }) {
   const [goal, setGoal] = useState(10);
   const [reward, setReward] = useState('');
   const [stamps, setStamps] = useState(0);
+  const [cardId, setCardId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -21,6 +23,7 @@ export default function Loyalty({ businessId, theme }) {
       let card = (ent.entries || [])[0];
       if (!card) { card = await createEntry(businessId, 'loyalty', { stamps: 0 }); setStamps(0); }
       else setStamps(card.data.stamps || 0);
+      setCardId(card?.id || null);
     } finally { setLoading(false); }
   }, [businessId]);
   useEffect(() => { load(); }, [load]);
@@ -49,6 +52,13 @@ export default function Loyalty({ businessId, theme }) {
       ) : (
         <Text style={s.note}>{t('loyalty_note')}</Text>
       )}
+
+      {cardId ? (
+        <View style={s.qrBox}>
+          <QRCode value={`yapio:loy:${businessId}:${cardId}`} size={130} color={COLORS.text} backgroundColor="#FFFFFF" />
+          <Text style={s.qrNote}>{t('loyalty_qr_note')}</Text>
+        </View>
+      ) : null}
       <View style={{ height: 20 }} />
     </ScrollView>
   );
@@ -66,4 +76,6 @@ const s = StyleSheet.create({
   banner: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 12, padding: 16, marginTop: 24 },
   bannerText: { flex: 1, fontSize: 14, color: COLORS.text, fontWeight: '600' },
   note: { textAlign: 'center', color: COLORS.muted, marginTop: 24, fontSize: 14 },
+  qrBox: { alignItems: 'center', backgroundColor: '#fff', borderRadius: 16, padding: 20, marginTop: 20 },
+  qrNote: { color: COLORS.muted, fontSize: 12, marginTop: 10, textAlign: 'center' },
 });

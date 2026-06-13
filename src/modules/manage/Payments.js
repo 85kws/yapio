@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getEntries, createEntry, deleteEntry } from '../../api/client';
 import { COLORS } from '../../theme';
 import { useLang } from '../../i18n';
+import { localDate } from '../../dates';
 
 export default function ManagePayments({ businessId, theme }) {
   const { t } = useLang();
@@ -19,7 +20,7 @@ export default function ManagePayments({ businessId, theme }) {
 
   const add = async () => {
     if (!f.amount) return;
-    await createEntry(businessId, 'payments', { customer_name: f.customer_name.trim(), amount: Number(f.amount) || 0, note: f.note.trim(), date: new Date().toISOString().slice(0, 10) }, 'paid');
+    await createEntry(businessId, 'payments', { customer_name: f.customer_name.trim(), amount: Number(f.amount) || 0, note: f.note.trim(), date: localDate() }, 'paid');
     setF({ customer_name: '', amount: '', note: '' }); load();
   };
 

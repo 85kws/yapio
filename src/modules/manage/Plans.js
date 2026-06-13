@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getEntries, createEntryFor, deleteEntry, getMembers } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
+import { localDate } from '../../dates';
 
 const emptySection = () => ({ heading: '', content: '' });
 
@@ -38,7 +39,7 @@ export default function ManagePlans({ businessId, theme }) {
     const secs = sections.filter((x) => x.heading.trim() || x.content.trim());
     setSaving(true);
     try {
-      await createEntryFor(businessId, 'plans', sel, { title: title.trim(), sections: secs, date: new Date().toISOString().slice(0, 10) });
+      await createEntryFor(businessId, 'plans', sel, { title: title.trim(), sections: secs, date: localDate() });
       setTitle(''); setSections([emptySection()]); await load();
       Alert.alert(t('assigned'), t('program_assigned'));
     } catch (e) { Alert.alert(t('error'), t('could_not_assign')); } finally { setSaving(false); }

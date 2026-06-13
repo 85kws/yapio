@@ -1,10 +1,11 @@
 // Satıcı sadakat yönetimi: hedef+ödül ayarı, müşteri kartlarına damga ekleme.
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, createItem, updateItem, getEntries, updateEntry } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
+import QRScanner from '../../components/QRScanner';
 
 export default function ManageLoyalty({ businessId, theme }) {
   const { t } = useLang();
@@ -13,6 +14,7 @@ export default function ManageLoyalty({ businessId, theme }) {
   const [goal, setGoal] = useState('10');
   const [reward, setReward] = useState('');
   const [loading, setLoading] = useState(true);
+  const [scanOpen, setScanOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -38,6 +40,17 @@ export default function ManageLoyalty({ businessId, theme }) {
     load();
   };
 
+  // QR okutunca: yapio:loy:<businessId>:<cardId> → ilgili karta +1 damga.
+  const onScan = async (raw) => {
+    setScanOpen(false);
+    const p = String(raw).split(':');
+    const card = (p[0] === 'yapio' && p[1] === 'loy' && String(p[2]) === String(businessId))
+      ? cards.find((x) => String(x.id) === String(p[3])) : null;
+    if (!card) return Alert.alert(t('invalid_qr_title'), t('invalid_qr_body'));
+    await stamp(card, 1);
+    Alert.alert(t('saved'), `${card.user_name || t('user')} · ${Math.min(Number(goal) || 10, (card.data.stamps || 0) + 1)} / ${goal}`);
+  };
+
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
   return (
     <ScrollView contentContainerStyle={s.wrap}>
@@ -48,7 +61,13 @@ export default function ManageLoyalty({ businessId, theme }) {
       <TextInput style={s.input} value={reward} onChangeText={setReward} placeholder={t('reward_ph')} placeholderTextColor="#B0B0C0" />
       <TouchableOpacity style={[s.save, { backgroundColor: theme }]} onPress={saveConfig}><Text style={s.saveText}>{t('save')}</Text></TouchableOpacity>
 
-      <Text style={s.h}>{t('customer_cards')} ({cards.length})</Text>
+      <View style={s.cardsHead}>
+        <Text style={s.h}>{t('customer_cards')} ({cards.length})</Text>
+        <TouchableOpacity style={[s.scanBtn, { backgroundColor: theme }]} onPress={() => setScanOpen(true)}>
+          <Ionicons name="qr-code-outline" size={16} color="#fff" />
+          <Text style={s.scanText}>{t('scan_qr')}</Text>
+        </TouchableOpacity>
+      </View>
       {cards.length === 0 && <Text style={s.empty}>{t('no_loyalty_cards')}</Text>}
       {cards.map((c) => (
         <View key={c.id} style={s.card}>
@@ -61,6 +80,7 @@ export default function ManageLoyalty({ businessId, theme }) {
         </View>
       ))}
       <View style={{ height: 30 }} />
+      <QRScanner visible={scanOpen} theme={theme} onClose={() => setScanOpen(false)} onScan={onScan} />
     </ScrollView>
   );
 }
@@ -76,4 +96,7 @@ const s = StyleSheet.create({
   card: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 8 },
   who: { fontSize: 16, fontWeight: '700', color: COLORS.text },
   meta: { fontSize: 13, color: COLORS.muted, marginTop: 2 },
+  cardsHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  scanBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
+  scanText: { color: '#fff', fontWeight: '700', fontSize: 13 },
 });

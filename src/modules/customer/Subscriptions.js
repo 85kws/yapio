@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import QRCode from 'react-native-qrcode-svg';
 import { getItems, getEntries, createEntry } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
@@ -11,6 +12,8 @@ export default function Subscriptions({ businessId, theme }) {
   const [plans, setPlans] = useState([]);
   const [mine, setMine] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const localToday = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
   const load = useCallback(async () => {
     try {
@@ -22,8 +25,13 @@ export default function Subscriptions({ businessId, theme }) {
   useEffect(() => { load(); }, [load]);
 
   const subscribe = async (plan) => {
-    await createEntry(businessId, 'subscriptions', { plan_name: plan.data.name, price: plan.data.price, started: new Date().toISOString().slice(0, 10), checkins: 0 }, 'active');
-    Alert.alert(t('membership_started'), plan.data.name); load();
+    if (mine || busy) return; // zaten aktif üyelik var / çift dokunma engeli
+    setBusy(true);
+    try {
+      await createEntry(businessId, 'subscriptions', { plan_name: plan.data.name, price: plan.data.price, started: localToday(), checkins: 0 }, 'active');
+      Alert.alert(t('membership_started'), plan.data.name); await load();
+    } catch (e) { Alert.alert(t('error'), e?.response?.data?.error || t('not_saved')); }
+    finally { setBusy(false); }
   };
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
@@ -35,7 +43,10 @@ export default function Subscriptions({ businessId, theme }) {
           <View style={s.cardTop}><Ionicons name="ticket" size={26} color="#fff" /><Text style={s.cardLabel}>{t('active_membership')}</Text></View>
           <Text style={s.cardPlan}>{mine.data.plan_name}</Text>
           <Text style={s.cardMeta}>{t('started_label')}: {mine.data.started}  ·  {t('checkins_label')}: {mine.data.checkins || 0}</Text>
-          <View style={s.qr}><Ionicons name="qr-code" size={90} color={theme} /><Text style={s.qrCode}>#{mine.id}</Text></View>
+          <View style={s.qr}>
+            <QRCode value={`yapio:sub:${businessId}:${mine.id}`} size={150} color={COLORS.text} backgroundColor="#FFFFFF" />
+            <Text style={s.qrCode}>#{mine.id}</Text>
+          </View>
           <Text style={s.qrNote}>{t('show_code_at_entry')}</Text>
         </View>
       ) : (
@@ -48,7 +59,7 @@ export default function Subscriptions({ businessId, theme }) {
                 <Text style={s.planName}>{p.data.name}</Text>
                 <Text style={s.planMeta}>{p.data.price} ₺{p.data.period ? ` / ${p.data.period}` : ''}</Text>
               </View>
-              <TouchableOpacity style={[s.subBtn, { backgroundColor: theme }]} onPress={() => subscribe(p)}><Text style={s.subText}>{t('subscribe')}</Text></TouchableOpacity>
+              <TouchableOpacity style={[s.subBtn, { backgroundColor: theme }]} disabled={busy} onPress={() => subscribe(p)}><Text style={s.subText}>{t('subscribe')}</Text></TouchableOpacity>
             </View>
           ))}
         </>
