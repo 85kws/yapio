@@ -1,11 +1,13 @@
 // Müşteri üyelik: planları gör, abone ol, üyelik kartını göster.
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, RefreshControl, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { getItems, getEntries, createEntry } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
+import { SkeletonList, EmptyState, useRefresh } from '../../components/ui';
+import { success } from '../../haptics';
 
 export default function Subscriptions({ businessId, theme }) {
   const { t } = useLang();
@@ -23,21 +25,25 @@ export default function Subscriptions({ businessId, theme }) {
     } finally { setLoading(false); }
   }, [businessId]);
   useEffect(() => { load(); }, [load]);
+  const { refreshing, onRefresh } = useRefresh(load);
 
   const subscribe = async (plan) => {
     if (mine || busy) return; // zaten aktif üyelik var / çift dokunma engeli
     setBusy(true);
     try {
       await createEntry(businessId, 'subscriptions', { plan_name: plan.data.name, price: plan.data.price, started: localToday(), checkins: 0 }, 'active');
-      Alert.alert(t('membership_started'), plan.data.name); await load();
+      success(); Alert.alert(t('membership_started'), plan.data.name); await load();
     } catch (e) { Alert.alert(t('error'), e?.response?.data?.error || t('not_saved')); }
     finally { setBusy(false); }
   };
 
-  if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
+  if (loading) return <SkeletonList theme={theme} />;
 
   return (
-    <ScrollView contentContainerStyle={s.wrap}>
+    <ScrollView
+      contentContainerStyle={s.wrap}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme} colors={[theme]} />}
+    >
       {mine ? (
         <View style={[s.card, { backgroundColor: theme }]}>
           <View style={s.cardTop}><Ionicons name="ticket" size={26} color="#fff" /><Text style={s.cardLabel}>{t('active_membership')}</Text></View>
@@ -52,7 +58,7 @@ export default function Subscriptions({ businessId, theme }) {
       ) : (
         <>
           <Text style={s.h}>{t('membership_plans')}</Text>
-          {plans.length === 0 && <Text style={s.empty}>{t('no_plans')}</Text>}
+          {plans.length === 0 && <EmptyState icon="pricetags-outline" text={t('no_plans')} theme={theme} />}
           {plans.map((p) => (
             <View key={p.id} style={s.plan}>
               <View style={{ flex: 1 }}>

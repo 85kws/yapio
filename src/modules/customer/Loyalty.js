@@ -1,11 +1,12 @@
 // Müşteri sadakat kartı: damga ilerlemesi. Kart yoksa otomatik oluşur.
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { getItems, getEntries, createEntry } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
+import { SkeletonList, useRefresh } from '../../components/ui';
 
 export default function Loyalty({ businessId, theme }) {
   const { t } = useLang();
@@ -27,12 +28,16 @@ export default function Loyalty({ businessId, theme }) {
     } finally { setLoading(false); }
   }, [businessId]);
   useEffect(() => { load(); }, [load]);
+  const { refreshing, onRefresh } = useRefresh(load);
 
-  if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
+  if (loading) return <SkeletonList theme={theme} rows={3} />;
 
   const done = stamps >= goal;
   return (
-    <ScrollView contentContainerStyle={s.wrap}>
+    <ScrollView
+      contentContainerStyle={s.wrap}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme} colors={[theme]} />}
+    >
       <View style={[s.card, { backgroundColor: theme }]}>
         <Text style={s.cardTitle}>{t('my_loyalty_card')}</Text>
         <Text style={s.cardCount}>{stamps} / {goal}</Text>

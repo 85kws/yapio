@@ -11,6 +11,7 @@ import { getAppBySlug, joinBusiness } from '../../src/api/client';
 import { COLORS } from '../../src/theme';
 import { useLang } from '../../src/i18n';
 import { moduleIcon, AppIcon } from '../../src/icons';
+import { tap, success } from '../../src/haptics';
 import { MODULE_INFO } from '../../src/modules';
 import { CUSTOMER } from '../../src/modules/registry';
 import BlockRenderer from '../../src/blocks/BlockRenderer';
@@ -35,6 +36,7 @@ export default function RunApp() {
 
   const switchTab = useCallback((nextKey, dir) => {
     if (nextKey === tabRef.current) return;
+    tap();                                  // dokunsal geri bildirim (sekme geçişi)
     anim.setValue(dir * SCREEN_W);          // yeni içerik dir yönünden gelir
     setTab(nextKey);
     Animated.timing(anim, { toValue: 0, duration: 240, useNativeDriver: true }).start();
@@ -79,7 +81,7 @@ export default function RunApp() {
     setJoining(true);
     try {
       const status = await joinBusiness(biz.id, withCode ? code.trim() : '');
-      if (status === 'active') { await load(); }
+      if (status === 'active') { success(); await load(); }
       else Alert.alert(t('request_sent_title'), t('request_sent_body'));
     } catch (e) { Alert.alert(t('error'), e?.response?.data?.error || t('error')); }
     finally { setJoining(false); }

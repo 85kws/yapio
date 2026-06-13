@@ -1,12 +1,14 @@
 // Müşteri randevu akışı: hizmet seç → TAKVİM (uçak-bileti tarzı: dolu gün soluk, boş gün açık)
 // → uygun saat → onayla. + Randevularım.
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, RefreshControl, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, getEntries, createEntry, updateEntry, bookingSlots } from '../../api/client';
 import { scheduleApptReminder } from '../../notifications/setup';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
+import { useRefresh } from '../../components/ui';
+import { success, warn } from '../../haptics';
 
 const WD_TR = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 const WD_EN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -43,6 +45,7 @@ export default function Booking({ businessId, theme }) {
     } catch (e) { console.warn(e?.message); } finally { setLoading(false); }
   }, [businessId]);
   useEffect(() => { load(); }, [load]);
+  const { refreshing, onRefresh } = useRefresh(load);
 
   // hizmet seçilince tüm günlerin müsaitliğini paralel çek
   const loadAvail = useCallback(async () => {
@@ -72,9 +75,11 @@ export default function Booking({ businessId, theme }) {
         duration_min: service.data.duration_min || 30, date, time,
       });
       scheduleApptReminder(date, time, service.data.name).catch(() => {});
+      success();
       Alert.alert(t('booked'), `${service.data.name} · ${date} ${time}`);
       setService(null); await load();
     } catch (e) {
+      warn();
       Alert.alert(t('error'), e?.response?.data?.error || t('booking_failed'));
       loadAvail(); // saat az önce dolduysa müsaitliği tazele
     }
@@ -97,7 +102,10 @@ export default function Booking({ businessId, theme }) {
   const daySlots = avail[date] || [];
 
   return (
-    <ScrollView contentContainerStyle={s.wrap}>
+    <ScrollView
+      contentContainerStyle={s.wrap}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme} colors={[theme]} />}
+    >
       {/* Randevularım */}
       {mine.length > 0 && (
         <View style={s.block}>

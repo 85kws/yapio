@@ -1,11 +1,12 @@
 // Danışan ölçüm görünümü: kendi vücut analizi geçmişi (mini admin girer), salt-okunur.
 // En son ölçüm + bir önceki ölçüme göre kilo değişimi + tüm detaylar.
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getEntries } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
+import { SkeletonList, EmptyState, useRefresh } from '../../components/ui';
 
 const FIELDS = ['weight', 'fat', 'fat_mass', 'muscle', 'water', 'bone', 'bmi', 'visceral', 'metabolic_age', 'bmr', 'protein', 'mineral', 'waist', 'hip', 'chest', 'arm'];
 
@@ -18,9 +19,15 @@ export default function Records({ businessId, theme }) {
     finally { setLoading(false); }
   }, [businessId]);
   useEffect(() => { load(); }, [load]);
+  const { refreshing, onRefresh } = useRefresh(load);
+  const rc = <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme} colors={[theme]} />;
 
-  if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
-  if (!list.length) return <View style={s.emptyWrap}><Ionicons name="fitness-outline" size={48} color={COLORS.muted} /><Text style={s.emptyText}>{t('no_measurements')}</Text></View>;
+  if (loading) return <SkeletonList theme={theme} rows={3} />;
+  if (!list.length) return (
+    <ScrollView contentContainerStyle={s.wrap} refreshControl={rc}>
+      <EmptyState icon="fitness-outline" text={t('no_measurements')} theme={theme} />
+    </ScrollView>
+  );
 
   const latest = list[0];
   const prev = list[1];
@@ -29,7 +36,7 @@ export default function Records({ businessId, theme }) {
   const delta = (!isNaN(wNow) && !isNaN(wPrev)) ? +(wNow - wPrev).toFixed(1) : null;
 
   return (
-    <ScrollView contentContainerStyle={s.wrap}>
+    <ScrollView contentContainerStyle={s.wrap} refreshControl={rc}>
       {/* Özet kartı */}
       <View style={[s.summary, { backgroundColor: theme }]}>
         <Text style={s.sumLabel}>{t('last_measurement')} · {latest.data.date}</Text>
@@ -69,9 +76,7 @@ export default function Records({ businessId, theme }) {
 }
 
 const s = StyleSheet.create({
-  wrap: { padding: 18 },
-  emptyWrap: { padding: 50, alignItems: 'center', gap: 12 },
-  emptyText: { color: COLORS.muted, fontSize: 15, textAlign: 'center' },
+  wrap: { padding: 18, flexGrow: 1 },
   summary: { borderRadius: 18, padding: 20 },
   sumLabel: { color: '#fff', opacity: 0.9, fontSize: 13, fontWeight: '600' },
   sumRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 6 },

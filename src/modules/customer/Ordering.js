@@ -1,10 +1,12 @@
 // Müşteri sipariş: katalogdan sepete ekle, sipariş ver. + Siparişlerim.
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, RefreshControl, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getItems, getEntries, createEntry } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
+import { SkeletonList, EmptyState, useRefresh } from '../../components/ui';
+import { success, tap } from '../../haptics';
 
 export default function Ordering({ businessId, theme }) {
   const { t } = useLang();
@@ -20,10 +22,11 @@ export default function Ordering({ businessId, theme }) {
     } finally { setLoading(false); }
   }, [businessId]);
   useEffect(() => { load(); }, [load]);
+  const { refreshing, onRefresh } = useRefresh(load);
 
   const qty = (id) => cart[id] || 0;
-  const inc = (id) => setCart((c) => ({ ...c, [id]: (c[id] || 0) + 1 }));
-  const dec = (id) => setCart((c) => ({ ...c, [id]: Math.max(0, (c[id] || 0) - 1) }));
+  const inc = (id) => { tap(); setCart((c) => ({ ...c, [id]: (c[id] || 0) + 1 })); };
+  const dec = (id) => { tap(); setCart((c) => ({ ...c, [id]: Math.max(0, (c[id] || 0) - 1) })); };
 
   const lines = items.filter((i) => qty(i.id) > 0).map((i) => ({ name: i.data.name, price: i.data.price || 0, qty: qty(i.id) }));
   const total = lines.reduce((s, l) => s + l.price * l.qty, 0);
@@ -31,13 +34,16 @@ export default function Ordering({ businessId, theme }) {
   const order = async () => {
     if (!lines.length) return;
     await createEntry(businessId, 'ordering', { lines, total }, 'new');
-    setCart({}); Alert.alert(t('order_placed'), `${total} ₺ · ${t('pay_at_delivery')}`); load();
+    setCart({}); success(); Alert.alert(t('order_placed'), `${total} ₺ · ${t('pay_at_delivery')}`); load();
   };
 
-  if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
+  if (loading) return <SkeletonList theme={theme} />;
 
   return (
-    <ScrollView contentContainerStyle={s.wrap}>
+    <ScrollView
+      contentContainerStyle={s.wrap}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme} colors={[theme]} />}
+    >
       {orders.length > 0 && (
         <View style={{ marginBottom: 18 }}>
           <Text style={s.h}>{t('my_orders')}</Text>
@@ -54,7 +60,7 @@ export default function Ordering({ businessId, theme }) {
       )}
 
       <Text style={s.h}>{t('menu')}</Text>
-      {items.length === 0 && <Text style={s.empty}>{t('no_products')}</Text>}
+      {items.length === 0 && <EmptyState icon="fast-food-outline" text={t('no_products')} theme={theme} />}
       {items.map((it) => (
         <View key={it.id} style={s.row}>
           <View style={{ flex: 1 }}>

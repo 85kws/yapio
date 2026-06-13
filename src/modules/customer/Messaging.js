@@ -1,10 +1,12 @@
 // Müşteri mesajlaşma: işletmeyle birebir thread.
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, RefreshControl, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getEntries, createEntry } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
+import { SkeletonList, useRefresh } from '../../components/ui';
+import { light } from '../../haptics';
 
 export default function Messaging({ businessId, theme }) {
   const { t } = useLang();
@@ -20,19 +22,20 @@ export default function Messaging({ businessId, theme }) {
     } finally { setLoading(false); }
   }, [businessId]);
   useEffect(() => { load(); }, [load]);
+  const { refreshing, onRefresh } = useRefresh(load);
 
   const send = async () => {
     if (!text.trim()) return;
-    const t = text.trim(); setText('');
-    await createEntry(businessId, 'messaging', { text: t, from: 'customer' });
+    const body = text.trim(); setText(''); light();
+    await createEntry(businessId, 'messaging', { text: body, from: 'customer' });
     load();
   };
 
-  if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
+  if (loading) return <SkeletonList theme={theme} rows={3} />;
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
-      <ScrollView ref={ref} contentContainerStyle={s.wrap} onContentSizeChange={() => ref.current?.scrollToEnd({ animated: true })}>
+      <ScrollView ref={ref} contentContainerStyle={s.wrap} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme} colors={[theme]} />} onContentSizeChange={() => ref.current?.scrollToEnd({ animated: true })}>
         {msgs.length === 0 && <Text style={s.empty}>{t('write_first_message')}</Text>}
         {msgs.map((m) => {
           const mine = m.data.from === 'customer';

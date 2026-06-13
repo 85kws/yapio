@@ -1,10 +1,12 @@
 // Müşteri yorumlar: puan + yorum bırak, tüm yorumları gör.
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getEntries, createEntry } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
+import { SkeletonList, useRefresh } from '../../components/ui';
+import { success, tap } from '../../haptics';
 
 export default function Reviews({ businessId, theme }) {
   const { t } = useLang();
@@ -17,18 +19,22 @@ export default function Reviews({ businessId, theme }) {
     try { setList((await getEntries(businessId, 'reviews')).entries || []); } finally { setLoading(false); }
   }, [businessId]);
   useEffect(() => { load(); }, [load]);
+  const { refreshing, onRefresh } = useRefresh(load);
 
   const submit = async () => {
     if (!rating) return;
     await createEntry(businessId, 'reviews', { rating, comment: comment.trim() });
-    setRating(0); setComment(''); load();
+    setRating(0); setComment(''); success(); load();
   };
 
-  if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
+  if (loading) return <SkeletonList theme={theme} rows={3} />;
   const avg = list.length ? (list.reduce((a, e) => a + (e.data.rating || 0), 0) / list.length).toFixed(1) : '—';
 
   return (
-    <ScrollView contentContainerStyle={s.wrap}>
+    <ScrollView
+      contentContainerStyle={s.wrap}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme} colors={[theme]} />}
+    >
       <View style={s.avgBox}>
         <Text style={[s.avgNum, { color: theme }]}>{avg}</Text>
         <Stars n={Math.round(Number(avg) || 0)} color={theme} size={18} />
@@ -38,7 +44,7 @@ export default function Reviews({ businessId, theme }) {
       <Text style={s.h}>{t('rate')}</Text>
       <View style={s.pick}>
         {[1, 2, 3, 4, 5].map((i) => (
-          <TouchableOpacity key={i} onPress={() => setRating(i)}><Ionicons name={i <= rating ? 'star' : 'star-outline'} size={32} color={theme} /></TouchableOpacity>
+          <TouchableOpacity key={i} onPress={() => { tap(); setRating(i); }}><Ionicons name={i <= rating ? 'star' : 'star-outline'} size={32} color={theme} /></TouchableOpacity>
         ))}
       </View>
       <TextInput style={s.input} value={comment} onChangeText={setComment} placeholder={t('comment_ph')} placeholderTextColor="#B0B0C0" multiline />

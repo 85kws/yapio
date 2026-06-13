@@ -1,10 +1,12 @@
 // Danışan program görünümü: kendine ATANAN programlar (mini admin atar), akordeon + bölümler.
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getEntries } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
+import { SkeletonList, EmptyState, useRefresh } from '../../components/ui';
+import { tap } from '../../haptics';
 
 export default function Plans({ businessId, theme }) {
   const { t } = useLang();
@@ -16,18 +18,24 @@ export default function Plans({ businessId, theme }) {
     finally { setLoading(false); }
   }, [businessId]);
   useEffect(() => { load(); }, [load]);
+  const { refreshing, onRefresh } = useRefresh(load);
+  const rc = <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme} colors={[theme]} />;
 
-  if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
-  if (!items.length) return <View style={s.empty}><Ionicons name="clipboard-outline" size={48} color={COLORS.muted} /><Text style={s.emptyText}>{t('no_assigned_program')}</Text></View>;
+  if (loading) return <SkeletonList theme={theme} rows={3} />;
+  if (!items.length) return (
+    <ScrollView contentContainerStyle={s.wrap} refreshControl={rc}>
+      <EmptyState icon="clipboard-outline" text={t('no_assigned_program')} theme={theme} />
+    </ScrollView>
+  );
 
   return (
-    <ScrollView contentContainerStyle={s.wrap}>
+    <ScrollView contentContainerStyle={s.wrap} refreshControl={rc}>
       {items.map((it, idx) => {
         const isOpen = open === it.id || (open === null && idx === 0); // ilkini açık başlat
         const secs = it.data.sections || (it.data.body ? [{ heading: '', content: it.data.body }] : []);
         return (
           <View key={it.id} style={s.card}>
-            <TouchableOpacity style={s.cardTop} activeOpacity={0.8} onPress={() => setOpen(isOpen ? -1 : it.id)}>
+            <TouchableOpacity style={s.cardTop} activeOpacity={0.8} onPress={() => { tap(); setOpen(isOpen ? -1 : it.id); }}>
               <View style={{ flex: 1 }}>
                 <Text style={s.title}>{it.data.title}</Text>
                 {it.data.date ? <Text style={s.date}>{it.data.date}</Text> : null}
@@ -53,9 +61,7 @@ export default function Plans({ businessId, theme }) {
 }
 
 const s = StyleSheet.create({
-  wrap: { padding: 18 },
-  empty: { padding: 50, alignItems: 'center', gap: 12 },
-  emptyText: { color: COLORS.muted, fontSize: 15, textAlign: 'center' },
+  wrap: { padding: 18, flexGrow: 1 },
   card: { backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 10 },
   cardTop: { flexDirection: 'row', alignItems: 'center' },
   title: { fontSize: 16, fontWeight: '800', color: COLORS.text },

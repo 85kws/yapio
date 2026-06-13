@@ -1,11 +1,13 @@
 // Müşteri takip: günlük su/kalori gir, geçmişi gör. (Adım için ayrı "Adım Sayar" modülü var.)
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getEntries, createEntry } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
 import { localDate } from '../../dates';
+import { SkeletonList, useRefresh } from '../../components/ui';
+import { success } from '../../haptics';
 
 export default function Tracker({ businessId, theme }) {
   const { t } = useLang();
@@ -17,21 +19,25 @@ export default function Tracker({ businessId, theme }) {
     try { setList((await getEntries(businessId, 'tracker')).entries || []); } finally { setLoading(false); }
   }, [businessId]);
   useEffect(() => { load(); }, [load]);
+  const { refreshing, onRefresh } = useRefresh(load);
 
   const add = async () => {
     if (!f.water && !f.calorie) return;
     await createEntry(businessId, 'tracker', { date: localDate(), water: Number(f.water) || 0, calorie: Number(f.calorie) || 0 });
-    setF({ water: '', calorie: '' }); load();
+    setF({ water: '', calorie: '' }); success(); load();
   };
 
-  if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
+  if (loading) return <SkeletonList theme={theme} rows={3} />;
 
   const today = localDate();
   const todays = list.filter((e) => e.data.date === today);
   const sum = (k) => todays.reduce((a, e) => a + (e.data[k] || 0), 0);
 
   return (
-    <ScrollView contentContainerStyle={s.wrap}>
+    <ScrollView
+      contentContainerStyle={s.wrap}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme} colors={[theme]} />}
+    >
       <Text style={s.h}>{t('today')}</Text>
       <View style={s.stats}>
         <Stat icon="water" label={t('water_ml')} val={sum('water')} theme={theme} />

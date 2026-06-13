@@ -1,9 +1,10 @@
 // Müşteri menü/katalog görünümü: kategoriye göre gruplu ürün listesi.
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { getItems } from '../../api/client';
 import { useLang } from '../../i18n';
 import { COLORS } from '../../theme';
+import { SkeletonList, EmptyState, useRefresh } from '../../components/ui';
 
 export default function Catalog({ businessId, theme }) {
   const { t } = useLang();
@@ -14,38 +15,43 @@ export default function Catalog({ businessId, theme }) {
     try { setItems(await getItems(businessId, 'catalog')); } finally { setLoading(false); }
   }, [businessId]);
   useEffect(() => { load(); }, [load]);
-
-  if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme} />;
-  if (items.length === 0) return <View style={s.empty}><Text style={s.emptyText}>{t('menu_preparing')}</Text></View>;
+  const { refreshing, onRefresh } = useRefresh(load);
 
   const cats = {};
   items.forEach((it) => { const c = it.data.category || t('general'); (cats[c] = cats[c] || []).push(it); });
 
   return (
-    <ScrollView contentContainerStyle={s.wrap}>
-      {Object.entries(cats).map(([cat, list]) => (
-        <View key={cat} style={{ marginBottom: 18 }}>
-          <Text style={[s.cat, { color: theme }]}>{cat}</Text>
-          {list.map((it) => (
-            <View key={it.id} style={s.row}>
-              <View style={{ flex: 1 }}>
-                <Text style={s.name}>{it.data.name}</Text>
-                {it.data.desc ? <Text style={s.desc}>{it.data.desc}</Text> : null}
+    <ScrollView
+      contentContainerStyle={s.wrap}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme} colors={[theme]} />}
+    >
+      {loading ? (
+        <SkeletonList theme={theme} />
+      ) : items.length === 0 ? (
+        <EmptyState icon="restaurant-outline" text={t('menu_preparing')} theme={theme} />
+      ) : (
+        Object.entries(cats).map(([cat, list]) => (
+          <View key={cat} style={{ marginBottom: 18 }}>
+            <Text style={[s.cat, { color: theme }]}>{cat}</Text>
+            {list.map((it) => (
+              <View key={it.id} style={s.row}>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.name}>{it.data.name}</Text>
+                  {it.data.desc ? <Text style={s.desc}>{it.data.desc}</Text> : null}
+                </View>
+                {it.data.price ? <Text style={s.price}>{it.data.price} ₺</Text> : null}
               </View>
-              {it.data.price ? <Text style={s.price}>{it.data.price} ₺</Text> : null}
-            </View>
-          ))}
-        </View>
-      ))}
+            ))}
+          </View>
+        ))
+      )}
       <View style={{ height: 20 }} />
     </ScrollView>
   );
 }
 
 const s = StyleSheet.create({
-  wrap: { padding: 18 },
-  empty: { padding: 40, alignItems: 'center' },
-  emptyText: { color: COLORS.muted, fontSize: 15 },
+  wrap: { padding: 18, flexGrow: 1 },
   cat: { fontSize: 18, fontWeight: '800', marginBottom: 10 },
   row: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 8 },
   name: { fontSize: 16, fontWeight: '700', color: COLORS.text },
